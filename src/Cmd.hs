@@ -1,4 +1,4 @@
-module Cmd (extract, toExecute) where
+module Cmd (extract, toExecute, find) where
 
 import System.Environment
 import Control.Monad
