@@ -1,6 +1,12 @@
 module Main where
 
-import Lib
+import Data.Maybe
+import Cmd
 
 main :: IO ()
-main = someFunc
+main = do
+    extracted <- Cmd.toExecute
+    let command = case extracted of
+                        Just a -> a
+                        otherwise -> ["nothing"]
+    putStrLn $ unwords command
