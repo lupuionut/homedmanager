@@ -3,6 +3,7 @@ module Config where
 
 import GHC.Generics
 import Data.Yaml
+import System.Posix.Files
 
 data Config = Config
                 {
@@ -12,6 +13,9 @@ data Config = Config
 
 instance FromJSON Config
 
+confirmExistence :: Maybe FilePath -> IO Bool
+confirmExistence Nothing = return False 
+confirmExistence (Just file) = fileExist file
 
 load :: Maybe FilePath -> IO (Maybe Config)
 load Nothing = return Nothing
