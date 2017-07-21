@@ -1,12 +1,18 @@
 module Main where
 
+import Control.Applicative
+import Control.Monad
+import System.Directory
+import System.Posix.Files
+import System.Exit
 import Data.Maybe
 import Cmd
+import Config
 
 main :: IO ()
 main = do
-    extracted <- Cmd.toExecute
-    let command = case extracted of
-                        Just a -> a
-                        otherwise -> ["nothing"]
-    putStrLn $ unwords command
+    cfgFile <- liftM2 (\cli sys -> cli <|> sys)
+                (Cmd.extract "--config")
+                (getHomeDirectory >>= (\path -> return $ Just (path ++ "/homedmanager.yaml")))
+    cfg <- Config.load cfgFile 
+    putStrLn $ (show cfg)

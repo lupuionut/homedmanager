@@ -1,16 +1,21 @@
-module Config (fromCmdLine)
-where
+{-# LANGUAGE DeriveGeneric #-}
+module Config where
 
-import System.IO
-import System.Environment
+import GHC.Generics
+import Data.Yaml
 
-fromCmdLine :: IO (Maybe String)
-fromCmdLine = do
-    args <- getArgs
-    return $ parse args
+data Config = Config
+                {
+                    id :: String,
+                    secret :: String
+                } deriving (Show, Generic)
+
+instance FromJSON Config
 
 
-parse :: [String] -> Maybe String
-parse ("--config":ss) = Just (unwords ss)
-parse [] = Nothing
-parse _ = Nothing
+load :: Maybe FilePath -> IO (Maybe Config)
+load Nothing = return Nothing
+load (Just file) =
+    do
+        settings <- decodeFile(file)
+        return $ settings
