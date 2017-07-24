@@ -4,22 +4,42 @@ module Config where
 import GHC.Generics
 import Data.Yaml
 import System.Posix.Files
+import Fs
 
 data Config = Config
                 {
-                    id :: String,
-                    secret :: String
+                    client_id :: String,
+                    client_secret :: String,
+                    authCode :: String,
+                    authTokenUrl :: String
                 } deriving (Show, Generic)
 
 instance FromJSON Config
 
+
+-- | confirm existance of configuration file
+-- | this should be located in the /homedir/homedmanager.yaml
 confirmExistence :: Maybe FilePath -> IO Bool
-confirmExistence Nothing = return False 
+confirmExistence Nothing = return False
 confirmExistence (Just file) = fileExist file
 
+
+-- | loads the configuration file
+-- | this is located in the /homedir/homedmanager.yaml
 load :: Maybe FilePath -> IO (Maybe Config)
 load Nothing = return Nothing
 load (Just file) =
     do
         settings <- decodeFile(file)
         return $ settings
+
+
+-- | check for existance of .config/homedmanager
+-- | if doesn't exist, it creates it
+-- | this directory will store the auth keys
+storageDir :: IO FilePath
+storageDir =
+    do
+        cfg <- Fs.getCfgDirectory
+        Fs.doesDirectoryExist cfg >>= (\b -> Fs.createCfgDirectory (not b) cfg)
+        return cfg

@@ -7,6 +7,7 @@ import System.Exit
 import Data.Maybe
 import Cmd
 import Config
+import Auth
 
 main :: IO ()
 main = do
@@ -14,4 +15,6 @@ main = do
                 (Cmd.extract "--config")
                 (getHomeDirectory >>= (\path -> return $ Just (path ++ "/homedmanager.yaml")))
     cfg <- Config.confirmExistence cfgFile >>= (\res -> if res then Config.load cfgFile else return Nothing)
-    putStrLn $ (show cfg)
+    -- putStrLn $ (show cfg)
+    c <- Config.storageDir
+    print c
