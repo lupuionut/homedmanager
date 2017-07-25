@@ -1,7 +1,7 @@
 module Fs where
 
 import qualified System.Directory as Directory
-
+import qualified System.IO as I
 
 -- | retrieve the configuration directory path
 getCfgDirectory :: IO FilePath
@@ -21,3 +21,11 @@ createCfgDirectory True d = Directory.createDirectory d
 -- | alias for System.Directory.doesDirectoryExist
 doesDirectoryExist :: FilePath -> IO Bool
 doesDirectoryExist = Directory.doesDirectoryExist
+
+
+storeInFile :: FilePath -> String -> IO ()
+storeInFile f s = writeFile f s
+
+
+loadFromFile :: FilePath -> IO String
+loadFromFile = readFile

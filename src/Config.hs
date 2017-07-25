@@ -11,7 +11,8 @@ data Config = Config
                     client_id :: String,
                     client_secret :: String,
                     authCode :: String,
-                    authTokenUrl :: String
+                    authTokenUrl :: String,
+                    authTokenInfo :: String
                 } deriving (Show, Generic)
 
 instance FromJSON Config
@@ -37,8 +38,8 @@ load (Just file) =
 -- | check for existance of .config/homedmanager
 -- | if doesn't exist, it creates it
 -- | this directory will store the auth keys
-storageDir :: IO FilePath
-storageDir =
+mkOrRetStorageDir :: IO FilePath
+mkOrRetStorageDir =
     do
         cfg <- Fs.getCfgDirectory
         Fs.doesDirectoryExist cfg >>= (\b -> Fs.createCfgDirectory (not b) cfg)
