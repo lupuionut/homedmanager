@@ -12,31 +12,17 @@ import Data.Maybe
 import Data.Aeson
 
 type URL = String
-data ReqTokens = ReqTokens  {
-                        refresh_token :: String,
-                        expires_in :: Int,
-                        userid :: String,
-                        access_token :: String,
-                        alias :: String,
-                        token_type :: String
-                        -- scope :: String
-                    } deriving (Generic, Read, Show)
 
-data TokenInfo = TokenInfo {
-                        expires_in :: Int,
-                        client_id :: String,
-                        alias :: String,
-                        userid :: String,
-                        scope :: String
-                    } deriving (Generic, Read, Show)
+data ResponseTokens = ResponseTokens { refresh_token :: String, expires_in :: Int, userid :: String, access_token :: String, alias :: String, token_type :: String } deriving (Generic, Read, Show)
+data ResponseTokenInfo = ResponseTokenInfo { expires_in :: Int, client_id :: String, alias :: String, userid :: String, scope :: String } deriving (Generic, Read, Show)
+data ResponseError = ResponseError { error::String, error_description :: String } deriving (Generic, Read, Show)
 
-
-instance FromJSON ReqTokens
-instance FromJSON TokenInfo
-
+instance FromJSON ResponseTokens
+instance FromJSON ResponseTokenInfo
+instance FromJSON ResponseError
 
 -- | helper function for getting new tokens/new token info
-doRequest :: URL -> [(C8.ByteString, Maybe C8.ByteString)] -> IO (Either String ReqTokens)
+doRequest :: URL -> [(C8.ByteString, Maybe C8.ByteString)] -> IO (Either String ResponseTokens)
 doRequest url queries =
     do
         initial <- H.parseRequest url
@@ -47,14 +33,14 @@ doRequest url queries =
                 $ initial
         res <- H.httpJSON req
         case (H.getResponseStatusCode res) of
-            200 -> return $ Right ((H.getResponseBody res) :: ReqTokens)
+            200 -> return $ Right ((H.getResponseBody res))
             401 -> fail "You must reauthorize this app. After authorization, edit homedmanager.yaml with the new provided code"
             _ -> fail ("Request to auth server failed." ++ show (H.getResponseStatusCode res))
 
 
 -- | retrieve access_token and refresh_token using code provided in authorize step (from config file)
 --   https://dev.strato.com/hidrive/content.php?r=150--OAuth2-Authentication#token
-grantWithCode :: Maybe Config -> IO (Maybe ReqTokens)
+grantWithCode :: Maybe Config -> IO (Maybe ResponseTokens)
 grantWithCode Nothing = return Nothing
 grantWithCode (Just c) =
     do
@@ -66,7 +52,7 @@ grantWithCode (Just c) =
 
 -- | retrieve access_token using stored refresh token from the tokens.cache file
 --   https://dev.strato.com/hidrive/content.php?r=150--OAuth2-Authentication#token
-grantWithRefreshToken :: Maybe Config -> IO (Maybe ReqTokens)
+grantWithRefreshToken :: Maybe Config -> IO (Maybe ResponseTokens)
 grantWithRefreshToken Nothing = return Nothing
 grantWithRefreshToken (Just c) =
     do
@@ -78,9 +64,9 @@ grantWithRefreshToken (Just c) =
 
 -- | verify access_token
 --   https://dev.strato.com/hidrive/content.php?r=150--OAuth2-Authentication#tokeninfo
-verifyToken :: String -> URL -> IO (Either String TokenInfo)
-verifyToken "" _ = return $ Left "Invalid token to verify."
-verifyToken _ "" = return $ Left "Invalid url to verify token."
+verifyToken :: String -> URL -> IO (Either ResponseError ResponseTokenInfo)
+verifyToken "" _ = return $ Left ResponseError { error = "1", error_description = "Invalid url to verify token"}
+verifyToken _ "" = return $ Left ResponseError { error = "1", error_description = "Invalid url to verify token"}
 verifyToken t url =
     do
         initial <- H.parseRequest (url)
@@ -89,15 +75,19 @@ verifyToken t url =
                 $ H.setRequestSecure True
                 $ H.setRequestPort 443
                 $ initial
-        res <- H.httpJSON req
+        res <- H.httpLBS req
+        let body = H.getResponseBody res
         case (H.getResponseStatusCode res) of
-            200 -> return $ Right ((H.getResponseBody res) :: TokenInfo)
-            _ -> return $ Left "Invalid token"
-
+            200 -> do
+                    let bd = decode body :: Maybe ResponseTokenInfo
+                    return $ Right (fromJust bd)
+            _ -> do
+                    let bd = decode body :: Maybe ResponseError
+                    return $ Left (fromJust bd)
 
 
 -- | provide reqtokens to use in the API calls
-withAccessToken :: Maybe Config -> IO (Maybe ReqTokens)
+withAccessToken :: Maybe Config -> IO (Maybe ResponseTokens)
 withAccessToken Nothing = return Nothing
 withAccessToken cfg = do
                         loaded <- loadTokens
@@ -109,19 +99,19 @@ withAccessToken cfg = do
                                 case verif of
                                     Left _ -> return Nothing
                                     Right info ->
-                                        if (expires_in (info::TokenInfo) > 0)
+                                        if (expires_in (info::ResponseTokenInfo) > 0)
                                             then return loaded
                                             else do (grantWithRefreshToken cfg) >>= storeTokens; loadTokens
 
 
 -- | store response from server to tokens.cache
-storeTokens :: Maybe ReqTokens -> IO ()
+storeTokens :: Maybe ResponseTokens -> IO ()
 storeTokens Nothing = return ()
 storeTokens (Just t) = Fs.mkOrRetTokenCacheFile >>= (\f -> Fs.storeInFile f (show t))
 
 
 -- | loads content of tokens.cache
-loadTokens :: IO (Maybe ReqTokens)
+loadTokens :: IO (Maybe ResponseTokens)
 loadTokens =
     Fs.mkOrRetTokenCacheFile >>= Fs.loadFromFile >>=
     (\s -> case (length s) of
