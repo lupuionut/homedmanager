@@ -15,4 +15,7 @@ main = do
                 (Cmd.extract "--config")
                 (getHomeDirectory >>= (\path -> return $ Just (path ++ "/homedmanager.yaml")))
     cfg <- Config.confirmExistence cfgFile >>= (\res -> if res then Config.load cfgFile else return Nothing)
-    Auth.grantWithCode cfg >>= (\t -> Auth.storeTokens t)
+    Auth.withAccessToken cfg >>=
+        (\mt -> case mt of
+            Nothing -> putStrLn "something went wrong"
+            Just t -> putStrLn "ok")

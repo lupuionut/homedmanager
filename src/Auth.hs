@@ -18,14 +18,15 @@ data ReqTokens = ReqTokens  {
                         userid :: String,
                         access_token :: String,
                         alias :: String,
-                        token_type :: String,
-                        scope :: String
+                        token_type :: String
+                        -- scope :: String
                     } deriving (Generic, Read, Show)
 
 data TokenInfo = TokenInfo {
                         expires_in :: Int,
-                        client_id :: Int,
+                        client_id :: String,
                         alias :: String,
+                        userid :: String,
                         scope :: String
                     } deriving (Generic, Read, Show)
 
@@ -45,10 +46,10 @@ doRequest url queries =
                 $ H.setRequestPort 443
                 $ initial
         res <- H.httpJSON req
-        case show(H.getResponseStatus res) of
-            "200" -> return $ Right ((H.getResponseBody res) :: ReqTokens)
-            "401" -> fail "You must reauthorize this app. After authorization, edit homedmanager.yaml with the new provided code"
-            _ -> fail "Request to auth server failed."
+        case (H.getResponseStatusCode res) of
+            200 -> return $ Right ((H.getResponseBody res) :: ReqTokens)
+            401 -> fail "You must reauthorize this app. After authorization, edit homedmanager.yaml with the new provided code"
+            _ -> fail ("Request to auth server failed." ++ show (H.getResponseStatusCode res))
 
 
 -- | retrieve access_token and refresh_token using code provided in authorize step (from config file)
@@ -57,7 +58,7 @@ grantWithCode :: Maybe Config -> IO (Maybe ReqTokens)
 grantWithCode Nothing = return Nothing
 grantWithCode (Just c) =
     do
-        response <- doRequest (Config.authTokenUrl c) [("grant_type", Just "authorization_code"),("code", Just (C8.pack $ Config.authCode c)),("client_id", Just "id"),("client_secret", Just "secret")]
+        response <- doRequest (Config.authTokenUrl c) [("grant_type", Just "authorization_code"),("code", Just (C8.pack $ Config.authCode c)),("client_id", Just (C8.pack $ Config.client_id c)),("client_secret", Just (C8.pack $ Config.client_secret c))]
         case response of
             Left _ -> return Nothing
             Right r -> return $ pure r
@@ -69,7 +70,7 @@ grantWithRefreshToken :: Maybe Config -> IO (Maybe ReqTokens)
 grantWithRefreshToken Nothing = return Nothing
 grantWithRefreshToken (Just c) =
     do
-        response <- doRequest (Config.authTokenUrl c) [("grant_type", Just "refresh_token"),("client_id", Just "id"),("client_secret", Just "secret")]
+        response <- doRequest (Config.authTokenUrl c) [("grant_type", Just "refresh_token"),("client_id", Just (C8.pack $ Config.client_id c)),("client_secret", Just (C8.pack $ Config.client_secret c))]
         case response of
             Left _ -> return Nothing
             Right r -> return $ pure r
@@ -89,28 +90,40 @@ verifyToken t url =
                 $ H.setRequestPort 443
                 $ initial
         res <- H.httpJSON req
-        case show(H.getResponseStatus res) of
-            "200" -> return $ Right ((H.getResponseBody res) :: TokenInfo)
+        case (H.getResponseStatusCode res) of
+            200 -> return $ Right ((H.getResponseBody res) :: TokenInfo)
             _ -> return $ Left "Invalid token"
 
 
 
--- |
-withAccessToken :: Maybe Config -> IO ()
-withAccessToken = undefined
+-- | provide reqtokens to use in the API calls
+withAccessToken :: Maybe Config -> IO (Maybe ReqTokens)
+withAccessToken Nothing = return Nothing
+withAccessToken cfg = do
+                        loaded <- loadTokens
+                        case loaded of
+                            Nothing -> do
+                                (grantWithCode cfg) >>= storeTokens; loadTokens
+                            (Just tokens) -> do
+                                verif <- verifyToken (access_token tokens) (authTokenInfo (fromJust cfg))
+                                case verif of
+                                    Left _ -> return Nothing
+                                    Right info ->
+                                        if (expires_in (info::TokenInfo) > 0)
+                                            then return loaded
+                                            else do (grantWithRefreshToken cfg) >>= storeTokens; loadTokens
 
 
 -- | store response from server to tokens.cache
 storeTokens :: Maybe ReqTokens -> IO ()
 storeTokens Nothing = return ()
-storeTokens (Just t) = Config.mkOrRetStorageDir >>= (\storage -> Fs.storeInFile (storage ++ "/tokens.cache") (show t))
+storeTokens (Just t) = Fs.mkOrRetTokenCacheFile >>= (\f -> Fs.storeInFile f (show t))
 
 
 -- | loads content of tokens.cache
 loadTokens :: IO (Maybe ReqTokens)
 loadTokens =
-    Config.mkOrRetStorageDir >>=
-    (\storage -> Fs.loadFromFile (storage ++ "/tokens.cache")) >>=
+    Fs.mkOrRetTokenCacheFile >>= Fs.loadFromFile >>=
     (\s -> case (length s) of
                 0 -> return Nothing
                 _ -> return $ Just (read s))

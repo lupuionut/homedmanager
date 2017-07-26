@@ -35,12 +35,3 @@ load (Just file) =
         return $ settings
 
 
--- | check for existance of .config/homedmanager
--- | if doesn't exist, it creates it
--- | this directory will store the auth keys
-mkOrRetStorageDir :: IO FilePath
-mkOrRetStorageDir =
-    do
-        cfg <- Fs.getCfgDirectory
-        Fs.doesDirectoryExist cfg >>= (\b -> Fs.createCfgDirectory (not b) cfg)
-        return cfg
