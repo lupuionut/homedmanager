@@ -1,13 +1,13 @@
 module Fs where
 
-import qualified System.Directory as Directory
+import qualified System.Directory as D
 import qualified System.IO as I
 
 -- | retrieve the configuration directory path
 getCfgDirectory :: IO FilePath
 getCfgDirectory =
     do
-        xdg <- Directory.getXdgDirectory Directory.XdgConfig ""
+        xdg <- D.getXdgDirectory D.XdgConfig ""
         return $ xdg ++ "/homedmanager"
 
 
@@ -15,7 +15,7 @@ getCfgDirectory =
 -- | /homedir/.config/homedmanager
 createCfgDirectory :: Bool -> FilePath -> IO ()
 createCfgDirectory False d = return ()
-createCfgDirectory True d = Directory.createDirectory d
+createCfgDirectory True d = D.createDirectory d
 
 
 createCacheFile :: Bool -> FilePath -> IO ()
@@ -39,13 +39,13 @@ mkOrRetTokenCacheFile =
     do
         storage <- mkOrRetStorageDir
         let cachefile = storage ++ "/tokens.cache"
-        Directory.doesFileExist cachefile >>= (\b -> createCacheFile (not b) cachefile)
+        D.doesFileExist cachefile >>= (\b -> createCacheFile (not b) cachefile)
         return cachefile
 
 
 -- | alias for System.Directory.doesDirectoryExist
 doesDirectoryExist :: FilePath -> IO Bool
-doesDirectoryExist = Directory.doesDirectoryExist
+doesDirectoryExist = D.doesDirectoryExist
 
 
 storeInFile :: FilePath -> String -> IO ()
