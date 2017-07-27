@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DuplicateRecordFields #-}
-module Auth (access_token, withAccessToken) where
+module Auth (access_token, ResponseTokens, withAccessToken) where
 
 import GHC.Generics
 import qualified Network.HTTP.Simple as H
@@ -179,6 +179,7 @@ loadTokens =
                 _ -> return $ Just (read s::ResponseTokens))
 
 
+-- | message to display when refresh token is not valid anymore
 reauthorizeAppMessage :: Config -> String
 reauthorizeAppMessage cfg =
         "You must reauthorize this app." ++

@@ -23,7 +23,8 @@ main = do
     Auth.withAccessToken cfg >>=
         (\mt -> case mt of
             Nothing -> putStrLn $ "Could not get a valid access_token"
-            Just responseToken -> do
-                toExecute <- Cmd.toExecute
-                Api.execute (Auth.access_token responseToken) toExecute
+            Just respToken -> do
+                let withToken = Auth.access_token respToken
+                commandList <- Cmd.toExecute
+                Api.execute commandList withToken
         )
