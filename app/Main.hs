@@ -8,6 +8,7 @@ import Data.Maybe
 import Cmd
 import Config
 import Auth
+import Api
 
 main :: IO ()
 main = do
@@ -21,5 +22,8 @@ main = do
             (\res -> if res then Config.load cfgFile else return Nothing)
     Auth.withAccessToken cfg >>=
         (\mt -> case mt of
-            Nothing -> putStrLn $ "not ok"
-            Just t -> putStrLn $ show mt)
+            Nothing -> putStrLn $ "Could not get a valid access_token"
+            Just responseToken -> do
+                toExecute <- Cmd.toExecute
+                Api.execute (Auth.access_token responseToken) toExecute
+        )

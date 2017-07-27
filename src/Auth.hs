@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DuplicateRecordFields #-}
-module Auth where
+module Auth (access_token, withAccessToken) where
 
 import GHC.Generics
 import qualified Network.HTTP.Simple as H

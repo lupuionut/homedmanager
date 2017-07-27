@@ -28,6 +28,6 @@ parse :: [String] -> Maybe [String]
 parse [] = Nothing
 parse (s:[]) = if (head s == '-') then Just[""] else Just [s]
 parse (s:ss)
-    | (head s == '-') = 
+    | (head s == '-') =
         if length (tail ss) == 0 then Just[""] else parse (tail ss)
     | otherwise = liftM2 (++) (Just [s]) (parse ss)

@@ -15,7 +15,7 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
-  exposed-modules:     Config,Cmd,Fs,Auth
+  exposed-modules:     Config,Cmd,Fs,Auth,Api
   build-depends:       base >= 4.7 && < 5, directory, unix, yaml, aeson, http-conduit, bytestring
   default-language:    Haskell2010
 
