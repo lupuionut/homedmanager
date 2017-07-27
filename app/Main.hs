@@ -21,5 +21,5 @@ main = do
             (\res -> if res then Config.load cfgFile else return Nothing)
     Auth.withAccessToken cfg >>=
         (\mt -> case mt of
-            Nothing -> putStrLn "something went wrong"
-            Just t -> putStrLn "ok")
+            Nothing -> putStrLn $ "not ok"
+            Just t -> putStrLn $ show mt)

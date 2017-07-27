@@ -39,9 +39,10 @@ instance FromJSON ResponseError
 -- | helper function for getting new tokens/new token info
 
 doRequest :: URL
+    -> Config
     -> [(C8.ByteString, Maybe C8.ByteString)]
     -> IO (Either String ResponseTokens)
-doRequest url queries =
+doRequest url cfg queries =
     do
         initial <- H.parseRequest url
         let req = H.setRequestMethod "POST"
@@ -49,13 +50,19 @@ doRequest url queries =
                 $ H.setRequestSecure True
                 $ H.setRequestPort 443
                 $ initial
-        res <- H.httpJSON req
+        res <- H.httpLBS req
+        let body = H.getResponseBody res
         case (H.getResponseStatusCode res) of
-            200 -> return $ Right ((H.getResponseBody res))
-            401 -> fail "You must reauthorize this app. After authorization,"
-                        "edit homedmanager.yaml with the new provided code"
-            _ -> fail ("Request to auth server failed." ++
-                        show (H.getResponseStatusCode res))
+            200 -> do
+                let bd = decode body :: Maybe ResponseTokens
+                return $ Right (fromJust bd)
+            401 -> do
+                let bd = decode body :: Maybe ResponseError
+                let reauthMessage = reauthorizeAppMessage cfg
+                fail $ (error_description (fromJust bd)) ++ reauthMessage
+            _ -> do
+                let bd = decode body :: Maybe ResponseError
+                return $ Left (error_description $ fromJust bd)
 
 
 -- | retrieve access_token and refresh_token using code provided in authorize
@@ -66,40 +73,44 @@ grantWithCode Nothing = return Nothing
 grantWithCode (Just c) =
     do
         response <-
-            doRequest (Config.authTokenUrl c)
+            doRequest (Config.authTokenUrl c) c
                         [ ("grant_type", Just "authorization_code"),
                         ("code", Just (C8.pack $ Config.authCode c)),
                         ("client_id", Just (C8.pack $ Config.client_id c)),
                         ("client_secret", Just (C8.pack $ Config.client_secret c))]
         case response of
-            Left _ -> return Nothing
+            Left err -> fail err
             Right r -> return $ pure r
 
 
 -- | retrieve access_token using stored refresh token from the tokens.cache file
 --   https://dev.strato.com/hidrive/content.php?r=150--OAuth2-Authentication#token
-grantWithRefreshToken :: Maybe Config -> IO (Maybe ResponseTokens)
-grantWithRefreshToken Nothing = return Nothing
-grantWithRefreshToken (Just c) =
+grantWithRefreshToken :: Maybe Config -> String -> IO (Maybe ResponseTokens)
+grantWithRefreshToken Nothing refreshToken = return Nothing
+grantWithRefreshToken (Just c) refreshToken =
     do
         response <-
-            doRequest (Config.authTokenUrl c)
+            doRequest (Config.authTokenUrl c) c
                         [ ("grant_type", Just "refresh_token"),
+                        ("refresh_token", Just(C8.pack refreshToken)),
                         ("client_id", Just (C8.pack $ Config.client_id c)),
                         ("client_secret", Just (C8.pack $ Config.client_secret c))]
         case response of
-            Left _ -> return Nothing
+            Left err -> fail err
             Right r -> return $ pure r
 
 
 -- | verify access_token
 --   https://dev.strato.com/hidrive/content.php?r=150--OAuth2-Authentication#tokeninfo
-verifyToken :: String -> URL -> IO (Either ResponseError ResponseTokenInfo)
-verifyToken "" _ = return $ Left ResponseError
-    {error = "1", error_description = "Invalid url to verify token"}
-verifyToken _ "" = return $ Left ResponseError
-    {error = "1", error_description = "Invalid url to verify token"}
-verifyToken t url =
+verifyToken :: String
+                -> Config
+                -> URL
+                -> IO (Either ResponseError ResponseTokenInfo)
+verifyToken "" _ _ = return $ Left ResponseError
+    {error = "1", error_description = "Empty token."}
+verifyToken _ cfg "" = return $ Left ResponseError
+    {error = "1", error_description = "Empty token url."}
+verifyToken t cfg url =
     do
         initial <- H.parseRequest (url)
         let req = H.setRequestMethod "POST"
@@ -113,6 +124,10 @@ verifyToken t url =
             200 -> do
                     let bd = decode body :: Maybe ResponseTokenInfo
                     return $ Right (fromJust bd)
+            401 -> do
+                    let bd = decode body :: Maybe ResponseError
+                    let reauthMessage = reauthorizeAppMessage cfg
+                    fail $ (error_description (fromJust bd)) ++ reauthMessage
             _ -> do
                     let bd = decode body :: Maybe ResponseError
                     return $ Left (fromJust bd)
@@ -128,16 +143,23 @@ withAccessToken cfg =
             Nothing -> do
                 (grantWithCode cfg) >>= storeTokens; loadTokens
             (Just tokens) -> do
+                let config = fromJust cfg
+                let refreshToken = refresh_token tokens
                 tokenInfo <- verifyToken
                                 (access_token tokens)
-                                (authTokenInfo (fromJust cfg))
+                                config
+                                (authTokenInfoUrl config)
                 case tokenInfo of
-                    Left _ -> return Nothing
+                    Left err -> do
+                        (grantWithRefreshToken cfg refreshToken) >>=
+                            storeTokens
+                        loadTokens
                     Right info ->
                         if (expires_in (info::ResponseTokenInfo) > 0)
                             then return loaded
                             else do
-                                (grantWithRefreshToken cfg) >>= storeTokens
+                                (grantWithRefreshToken cfg refreshToken) >>=
+                                    storeTokens
                                 loadTokens
 
 
@@ -154,4 +176,13 @@ loadTokens =
     Fs.mkOrRetTokenCacheFile >>= Fs.loadFromFile >>=
     (\s -> case (length s) of
                 0 -> return Nothing
-                _ -> return $ Just (read s))
+                _ -> return $ Just (read s::ResponseTokens))
+
+
+reauthorizeAppMessage :: Config -> String
+reauthorizeAppMessage cfg =
+        "You must reauthorize this app." ++
+        "Please follow this link: " ++
+        "https://www.hidrive.strato.com/oauth2/authorize?" ++
+        "client_id="++(Config.client_id cfg)++"&response_type=code" ++
+        " Provided code must be inserted in homedmanager.yaml"
