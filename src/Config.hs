@@ -12,7 +12,8 @@ data Config = Config
                     client_secret :: String,
                     authCode :: String,
                     authTokenUrl :: String,
-                    authTokenInfoUrl :: String
+                    authTokenInfoUrl :: String,
+                    apiUrl :: String
                 } deriving (Show, Generic)
 
 instance FromJSON Config
