@@ -1,33 +1,55 @@
-module Cmd (extract, toExecute, find) where
+module Cmd where
 
-import System.Environment
 import Control.Monad
 
--- | extract specific arguments from the command line
--- | e.g. --config
-extract :: String -> IO (Maybe String)
-extract cmd = do
-    input <- getArgs
-    return $ find cmd input
+type Parser a b = [a] -> ([a],b)
+type Key = String
+type Value = String
 
-find :: String -> [String] -> Maybe String
-find _ [] = Nothing
-find cmd str = if length found < 2 then Nothing else Just (head $ tail found)
+buildOptions :: Maybe [String] -> Maybe [(Key, Value)]
+buildOptions s = undefined
+
+
+buildCommand :: [String] -> [String]
+buildCommand [] = []
+buildCommand line = words $ snd $ takeUntil '-' (unwords line)
+
+
+parseOptions :: [String] -> Maybe [String]
+parseOptions [] = Just []
+parseOptions [""] = Just []
+parseOptions s = liftM2 (++) (Just([option])) (parseOptions [remain])
     where
-        found = dropWhile (\s -> s /= cmd) str
+        (remain,option) = ((findOptionStart '-')<&&>(takeUntil ' ')) (unwords s)
 
--- | parse the command line and gets the command to execute
--- | by convention, any string starting with -- is considered to be an argument
--- | e.g. --config
-toExecute :: IO (Maybe [String])
-toExecute = do
-    input <- getArgs
-    return $ parse input
 
-parse :: [String] -> Maybe [String]
-parse [] = Nothing
-parse (s:[]) = if (head s == '-') then Just[""] else Just [s]
-parse (s:ss)
-    | (head s == '-') =
-        if length (tail ss) == 0 then Just[""] else parse (tail ss)
-    | otherwise = liftM2 (++) (Just [s]) (parse ss)
+findOptionStart :: Char -> Parser Char Char
+findOptionStart c [] = ([],' ')
+findOptionStart c str
+    | length remains /= 0 =
+        if length remains == 0 then ([],c) else (tail(remains), c)
+    | otherwise = ([],' ')
+        where
+            remains = dropWhile (\x -> x /= c) str
+
+
+takeUntil :: Char -> Parser Char String
+takeUntil separator [] = ([],"")
+takeUntil separator str
+    | length key /= 0 =
+        if length remains == 0 then ([],key) else (tail(remains), key)
+    | otherwise = ([],"")
+        where
+            key = takeWhile (\x -> x /= separator) str
+            remains = dropWhile (\x -> x /= separator) str
+
+
+--  ((findOptionStart '-')<&&>(takeUntil ' ')) "put /files/home -config=asdasdas -do=asda -exec=34"
+-- [("-do=asda -exec=34","config=asdasdas")]
+(<&&>) :: Parser Char Char -> Parser Char String -> Parser Char String
+(p1 <&&> p2) xs
+    | length xs == 0 = ([],"")
+    | otherwise = (cs2,s2)
+        where
+            (cs1,s1) = p1 xs
+            (cs2, s2) = p2 cs1
