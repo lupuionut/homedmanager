@@ -7,7 +7,17 @@ type Key = String
 type Value = String
 
 buildOptions :: Maybe [String] -> Maybe [(Key, Value)]
-buildOptions s = undefined
+buildOptions Nothing = Nothing
+buildOptions (Just xs) = pure $ map (reverseOption . takeUntil '=') xs
+
+
+extractOptionValue :: Key -> Maybe [(Key,Value)] -> Maybe Value
+extractOptionValue "" _ = Nothing
+extractOptionValue _ Nothing = Nothing
+extractOptionValue k (Just s) =
+    if length filtered == 0 then Nothing else Just (snd . head $ filtered)
+        where
+            filtered = filter (\p -> fst p == k) s
 
 
 buildCommand :: [String] -> [String]
@@ -44,8 +54,6 @@ takeUntil separator str
             remains = dropWhile (\x -> x /= separator) str
 
 
---  ((findOptionStart '-')<&&>(takeUntil ' ')) "put /files/home -config=asdasdas -do=asda -exec=34"
--- [("-do=asda -exec=34","config=asdasdas")]
 (<&&>) :: Parser Char Char -> Parser Char String -> Parser Char String
 (p1 <&&> p2) xs
     | length xs == 0 = ([],"")
@@ -53,3 +61,7 @@ takeUntil separator str
         where
             (cs1,s1) = p1 xs
             (cs2, s2) = p2 cs1
+
+
+reverseOption :: (a,a) -> (a,a)
+reverseOption (a,b) = (b,a)

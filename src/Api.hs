@@ -11,7 +11,8 @@ import Data.Maybe
 import System.Environment
 
 type Token = String
-type CommandList = [String]
+type Command = [String]
+type Options = Maybe [(String,String)]
 data Action a = GET a | POST a | PUT a | DELETE a | PATCH a
     deriving (Show,Read)
 
@@ -34,14 +35,15 @@ instance ApiRequest (Action String) where
     endpoint (PATCH xs) = xs
 
 
-execute :: Maybe CommandList -> Token -> IO ()
-execute Nothing _ = return ()
-execute (Just commandList) withToken = do
---    putStrLn . endpoint . fromJust $ buildInternalRequest commandList
-    s <- getArgs
-    putStrLn . unwords $ s
+execute :: Command -> Token -> Options -> IO ()
+execute c t o = case request of
+    Nothing -> return ()
+    Just a -> do
+        putStrLn $ show a
+    where
+        request = buildInternalRequest c
 
-buildInternalRequest :: CommandList -> Maybe (Action String)
+buildInternalRequest :: Command -> Maybe (Action String)
 buildInternalRequest [] = Nothing
 buildInternalRequest (x:xs)
     | toLowerS x == toLowerS "GET" = Just (GET (unwords xs))
