@@ -7,6 +7,8 @@ import qualified Data.ByteString.Char8 as C8
 import qualified Codec.Binary.Base64.String as B64
 import Api.Request
 import Data.Char
+import Data.Aeson
+import Data.Maybe
 import System.Environment
 
 type Token = String
@@ -19,9 +21,8 @@ execute u c t o = case request of
     Nothing -> return ()
     Just action -> do
         let options = buildInternalOptions o
-        let url = u ++ endpoint action
         let token = "Bearer " ++ B64.encode t
-        response <- doRequest url token action options
+        response <- doRequest u token action options
         putStrLn $ response
     where
         request = buildInternalRequest c
@@ -52,19 +53,18 @@ doRequest :: String
 doRequest url token action options =
     do
         initial <- H.parseRequest url
-        let req = H.setRequestMethod (C8.pack $ method action)
-                $ H.addRequestHeader hAuthorization (C8.pack token)
+        let req = H.addRequestHeader hAuthorization (C8.pack token)
                 $ H.setRequestQueryString options
                 $ H.setRequestSecure True
                 $ H.setRequestPort 443
-                $ initial
+                $ (Api.Request.build action initial)
         res <- H.httpLBS req
         let body = H.getResponseBody res
         case (H.getResponseStatusCode res) of
             200 -> do
-                return $ show body
+                return $ show $ fromJust (decode body :: Maybe Value)
             _ -> do
-                return $ show (options)
+                return $ msg $ fromJust (decode body :: Maybe ReceivedError)
 
 
 toLowerS :: String -> String

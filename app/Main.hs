@@ -39,7 +39,7 @@ main = do
 help :: String
 help =
     "\nUsage: homedmanager-exe COMMAND [OPTIONS] \n" ++
-    "Each option is the format -key=values." ++
+    "Each option (parameter) is the format -key=values." ++
     "For example -fields=account,alias\n" ++
     "You can use multiple options with some commands\n\n" ++
     "List of commands:\n" ++
