@@ -6,10 +6,10 @@ import System.Environment
 import System.Directory
 import System.Exit
 import Data.Maybe
-import Cmd
 import Config
 import Auth
 import Api
+import Cmd
 
 main :: IO ()
 main = do
@@ -31,7 +31,8 @@ main = do
                 Nothing -> putStrLn $ "Could not get a valid access_token"
                 Just respToken -> do
                     let withToken = Auth.access_token respToken
-                    Api.execute command withToken options
+                    let url = Config.apiUrl (fromJust cfg)
+                    Api.execute url command withToken options
             )
 
 
