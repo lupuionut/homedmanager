@@ -28,15 +28,21 @@ execute u c t o = case request of
         request = buildInternalRequest c
 
 
-buildInternalRequest :: Command -> Maybe (Action String)
+buildInternalRequest :: Command -> Maybe (ApiRequest Command)
 buildInternalRequest [] = Nothing
-buildInternalRequest (x:xs)
-    | toLowerS x == toLowerS "GET" = Just (GET (unwords xs))
-    | toLowerS x == toLowerS "POST" = Just (POST (unwords xs))
-    | toLowerS x == toLowerS "PUT" = Just (PUT (unwords xs))
-    | toLowerS x == toLowerS "DELETE" = Just (DELETE (unwords xs))
-    | toLowerS x == toLowerS "PATCH" = Just (PATCH (unwords xs))
-    | otherwise = Just (POST (unwords xs))
+buildInternalRequest (x:xs) =
+    case (toLowerS x) of
+        "get" ->
+            Just (GetRequest xs)
+        "post" ->
+            Just (PostRequest xs)
+        "put" ->
+            Just (PutRequest xs)
+        "delete" ->
+            Just (DeleteRequest xs)
+        "patch" ->
+            Just (PatchRequest xs)
+        _ -> Nothing
 
 
 buildInternalOptions :: Options -> [(C8.ByteString, Maybe C8.ByteString)]
@@ -47,7 +53,7 @@ buildInternalOptions (Just o) =
 
 doRequest :: String
     -> Token
-    -> Action String
+    -> ApiRequest Command
     -> [(C8.ByteString, Maybe C8.ByteString)]
     -> IO String
 doRequest url token action options =
@@ -65,7 +71,6 @@ doRequest url token action options =
                 return $ show $ fromJust (decode body :: Maybe Value)
             _ -> do
                 return $ msg $ fromJust (decode body :: Maybe ReceivedError)
-
 
 toLowerS :: String -> String
 toLowerS = map toLower
