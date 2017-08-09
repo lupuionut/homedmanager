@@ -65,7 +65,6 @@ doRequest url token action options =
                 $ H.setRequestSecure True
                 $ H.setRequestPort 443
                 $ composed
-        return $ show req
         res <- H.httpLBS req
         let body = H.getResponseBody res
         case (H.getResponseStatusCode res) of

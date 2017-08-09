@@ -10,6 +10,7 @@ import Network.HTTP.Simple
 import qualified Data.ByteString.Char8 as C8
 import Network.HTTP.Types.Header
 import System.FilePath.Posix
+import qualified Data.ByteString.UTF8 as BUTF
 
 data ApiRequest a =
       PostRequest a
@@ -77,7 +78,7 @@ postFile arguments options request =
 
 fileName :: String -> Maybe C8.ByteString
 fileName "" = Nothing
-fileName s = pure $ C8.pack $ takeFileName s
+fileName s = pure $ BUTF.fromString $ takeFileName s
 
 
 
