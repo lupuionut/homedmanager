@@ -14,8 +14,8 @@ extra-source-files:  README.md
 cabal-version:       >=1.10
 
 library
-  hs-source-dirs:      src 
-  exposed-modules:     Config,Cmd,Fs,Auth,Api, Api.Request
+  hs-source-dirs:      src
+  exposed-modules:     Config,Cmd,Fs,Auth,Api, Api.Request, Api.PostRequest
   build-depends:       base >= 4.7 && < 5, directory, unix, yaml, aeson,
                         http-conduit, bytestring, base64-string, http-types,
                         filepath, utf8-string

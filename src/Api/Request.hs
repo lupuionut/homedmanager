@@ -1,16 +1,15 @@
-{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE DataKinds #-}
 module Api.Request where
 
 import GHC.Generics
 import Data.Aeson
 import Network.HTTP.Simple
-import qualified Data.ByteString.Char8 as C8
 import Network.HTTP.Types.Header
-import System.FilePath.Posix
+import qualified Data.ByteString.Char8 as C8
 import qualified Data.ByteString.UTF8 as BUTF
+import qualified Api.PostRequest as POST
+
 
 data ApiRequest a =
       PostRequest a
@@ -56,29 +55,8 @@ postRequest :: [String]
 postRequest [] options request = request
 postRequest (path:arguments) options request =
     case path of
-        "/file" -> postFile arguments options req
+        "/file" -> POST.file arguments options req
         _ -> req
     where
         req = setRequestPath (C8.pack $ "/2.1" ++ path) request
-
-
--- | https://api.hidrive.strato.com/2.1/static/apidoc/index.html#/2.1/file_POST
-postFile :: [String]
-    -> [(C8.ByteString, Maybe C8.ByteString)]
-    -> Request
-    -> Request
-postFile [] options request = request
-postFile arguments options request =
-    setRequestBodyFile file $
-    addRequestHeader hContentType (C8.pack "application/octet-stream") $
-    setRequestQueryString (options ++ [("name",fileName file)]) $
-    request
-    where
-        file = head arguments
-
-fileName :: String -> Maybe C8.ByteString
-fileName "" = Nothing
-fileName s = pure $ BUTF.fromString $ takeFileName s
-
-
 
