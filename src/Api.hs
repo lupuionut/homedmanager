@@ -64,6 +64,7 @@ doRequest url token action options =
                 $ H.setRequestSecure True
                 $ H.setRequestPort 443
                 $ (Api.Request.build action initial)
+        -- return $ show req
         res <- H.httpLBS req
         let body = H.getResponseBody res
         case (H.getResponseStatusCode res) of
@@ -71,6 +72,5 @@ doRequest url token action options =
                 return $ show $ fromJust (decode body :: Maybe Value)
             _ -> do
                 return $ msg $ fromJust (decode body :: Maybe ReceivedError)
-
 toLowerS :: String -> String
 toLowerS = map toLower

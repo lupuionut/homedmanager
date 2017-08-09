@@ -48,6 +48,9 @@ doesDirectoryExist :: FilePath -> IO Bool
 doesDirectoryExist = D.doesDirectoryExist
 
 
+doesFileExist :: FilePath -> IO Bool
+doesFileExist = D.doesFileExist
+
 storeInFile :: FilePath -> String -> IO ()
 storeInFile f s = writeFile f s
 

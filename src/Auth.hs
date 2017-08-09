@@ -186,4 +186,4 @@ reauthorizeAppMessage cfg =
         "Please follow this link: " ++
         "https://www.hidrive.strato.com/oauth2/authorize?" ++
         "client_id="++(Config.client_id cfg)++"&response_type=code" ++
-        " Provided code must be inserted in homedmanager.yaml"
+        "&scope=admin,rw Provided code must be inserted in homedmanager.yaml"
