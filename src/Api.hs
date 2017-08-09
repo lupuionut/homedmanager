@@ -59,11 +59,13 @@ doRequest :: String
 doRequest url token action options =
     do
         initial <- H.parseRequest url
+        let composed = Api.Request.build action options initial
         let req = H.addRequestHeader hAuthorization (C8.pack token)
-                $ H.setRequestQueryString options
+                -- $ H.setRequestQueryString options
                 $ H.setRequestSecure True
                 $ H.setRequestPort 443
-                $ (Api.Request.build action initial)
+                $ composed
+        return $ show req
         res <- H.httpLBS req
         let body = H.getResponseBody res
         case (H.getResponseStatusCode res) of
