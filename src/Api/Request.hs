@@ -31,6 +31,7 @@ build :: ApiRequest [String]
         -> Request
 build (GetRequest arguments) options httpRequest =
     setRequestMethod (C8.pack "GET")
+    $ setRequestQueryString options
     $ getRequest arguments httpRequest
 build (PostRequest arguments) options httpRequest =
     setRequestMethod (C8.pack "POST")
@@ -56,7 +57,8 @@ postRequest [] options request = request
 postRequest (path:arguments) options request =
     case path of
         "/file" -> POST.file arguments options req
-        "/dir" -> POST.dir arguments options req
+        "/dir" -> POST.catchall arguments options req
+        "/share" -> POST.catchall arguments options req
         _ -> req
     where
         req = setRequestPath (C8.pack $ "/2.1" ++ path) request
