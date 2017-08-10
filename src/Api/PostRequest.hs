@@ -28,4 +28,11 @@ fileName "" = Nothing
 fileName s = pure $ BUTF.fromString $ takeFileName s
 
 
+-- | https://api.hidrive.strato.com/2.1/static/apidoc/index.html#/2.1/dir_POST
+dir :: [String]
+    -> [(C8.ByteString, Maybe C8.ByteString)]
+    -> Request
+    -> Request
+dir arguments options request =
+    setRequestQueryString options request
 

@@ -56,6 +56,7 @@ postRequest [] options request = request
 postRequest (path:arguments) options request =
     case path of
         "/file" -> POST.file arguments options req
+        "/dir" -> POST.dir arguments options req
         _ -> req
     where
         req = setRequestPath (C8.pack $ "/2.1" ++ path) request
