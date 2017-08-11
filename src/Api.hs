@@ -61,7 +61,6 @@ doRequest url token action options =
         initial <- H.parseRequest url
         let composed = Api.Request.build action options initial
         let req = H.addRequestHeader hAuthorization (C8.pack token)
-                -- $ H.setRequestQueryString options
                 $ H.setRequestSecure True
                 $ H.setRequestPort 443
                 $ composed
