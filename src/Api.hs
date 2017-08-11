@@ -10,6 +10,8 @@ import Data.Char
 import Data.Aeson
 import Data.Maybe
 import System.Environment
+import Api.Response
+
 
 type Token = String
 type Command = [String]
@@ -68,7 +70,8 @@ doRequest url token action options =
         let body = H.getResponseBody res
         case (H.getResponseStatusCode res) of
             200 -> do
-                return $ show $ fromJust (decode body :: Maybe Value)
+                return $ showResponse $
+                    fromJust (decode body :: Maybe Api.Response.Response)
             201 -> do
                 return $ show $ fromJust (decode body :: Maybe Value)
             _ -> do
