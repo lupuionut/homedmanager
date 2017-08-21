@@ -28,67 +28,90 @@ mkHidriveRequest a b = HidriveRequest a b
 
 type family HidriveResponse a :: *
 
-
+{-- /app/me requests --}
 data AppRequest
-type instance HidriveResponse AppRequest = AppInfoResponse
+type instance HidriveResponse AppRequest = AppResponse
 
-data AppInfoResponse = AppInfoResponse
+data AppResponse = AppResponse
     {
-        appCreated :: Int,
-        appDeveloper :: Developer,
-        appHomepage :: String,
-        appId :: Int,
-        appMayPublish :: Bool,
-        appName :: String,
-        appPrivateFolder :: String,
-        appPrivateFolderId :: String,
-        appPublicationUrl :: String,
-        appRefreshToken :: RefreshToken,
-        appStatus :: String
-    } deriving Show
+        appCreated :: Maybe Int,
+        appDeveloper :: Maybe Developer,
+        appHomepage :: Maybe String,
+        appId :: Maybe Int,
+        appMayPublish :: Maybe Bool,
+        appName :: Maybe String,
+        appPrivateFolder :: Maybe String,
+        appPrivateFolderId :: Maybe String,
+        appPublicationUrl :: Maybe String,
+        appRefreshToken :: Maybe RefreshToken,
+        appStatus :: Maybe String
+    } deriving (Eq,Show)
 
 data Developer = Developer
     {
-        devEmail :: String,
-        devName :: String
-    } deriving Show
+        devEmail :: Maybe String,
+        devName :: Maybe String
+    } deriving (Show,Eq)
+
+instance FromJSON Developer where
+    parseJSON = withObject "Developer" parse
+        where
+            parse o = Developer
+                        <$> o .:? "name"
+                        <*> o .:? "email"
 
 data RefreshToken = RefreshToken
     {
-        refreshTokenExpire :: Int,
-        refreshTokenExpireIn :: Int,
-        refreshTokenInstanceId :: String,
-        refreshTokenScope :: String
-    } deriving Show
+        refreshTokenExpire :: Maybe Int,
+        refreshTokenExpireIn :: Maybe Int,
+        refreshTokenInstanceId :: Maybe String,
+        refreshTokenScope :: Maybe String
+    } deriving (Eq,Show)
 
-{--
-instance FromJSON AppInfoResponse where
-    parseJSON = withObject "AppInfoResponse" parse
+instance FromJSON RefreshToken where
+    parseJSON = withObject "RefreshToken" parse
         where
-            parse o = AppInfoResponse 
-                        <$> o .: "created"
-                        <*> o .: "developer.email"
-                        <*> o .: "developer.name"
-                        <*> o .: "homepage"
-                        <*> o .: "id"
-                        <*> o .: "may_publish"
-   --}                     
+            parse o = RefreshToken
+                        <$> o .:? "expire"
+                        <*> o .:? "expire_in"
+                        <*> o .:? "instance_id"
+                        <*> o .:? "scope"
 
+instance FromJSON AppResponse where
+    parseJSON = withObject "AppResponse" parse
+        where
+            parse o = AppResponse
+                        <$> o .:? "created"
+                        <*> o .:? "developer"
+                        <*> o .:? "homepage"
+                        <*> o .:? "id"
+                        <*> o .:? "may_publish"
+                        <*> o .:? "name"
+                        <*> o .:? "private_folder"
+                        <*> o .:? "private_folder_id"
+                        <*> o .:? "publication_url"
+                        <*> o .:? "refresh_token"
+                        <*> o .:? "status"
+{-- /app/me requests --}
 
-
-
+{-- /permission requests --}
 data PermissionsRequest
 type instance HidriveResponse PermissionsRequest = PermissionsResponse
 
 data PermissionsResponse = PermissionsResponse
-  { 
+  {
+    permissionsAccount :: Maybe String,
     permissionsWritable :: Bool,
-    permissionsReadable :: Bool
+    permissionsReadable :: Bool,
+    permissionsPath :: Maybe String
   } deriving (Eq, Show)
 
 instance FromJSON PermissionsResponse where
   parseJSON = withObject "PermissionsResponse" parse
     where
       parse o = PermissionsResponse
-                <$> o .: "writable"
-                <*> o .: "readable"
+                <$> o .:? "account"
+                <*> o .:  "writable"
+                <*> o .:  "readable"
+                <*> o .:? "path"
+{-- /permission requests --}

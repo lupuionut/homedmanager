@@ -25,7 +25,8 @@ execute endpoint c t o = do
     case (head c) of
         "app" -> do
             let req = infoApp (request' request)
-            print req
+            response <- execute' req
+            print response
         "stat" -> do
             let req = permissions options (request' request)
             response <- execute' req
@@ -67,7 +68,7 @@ infoApp httpReq = request
         request = mkHidriveRequest
                     (C8.pack "GET")
                     (H.setRequestMethod (C8.pack "GET") $
-                    H.setRequestPath (C8.pack("/app/me")) $
+                    H.setRequestPath (C8.pack("/2.1/app/me")) $
                     httpReq)
 
 
