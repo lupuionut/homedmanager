@@ -45,13 +45,13 @@ data AppResponse = AppResponse
         appPublicationUrl :: Maybe String,
         appRefreshToken :: Maybe RefreshToken,
         appStatus :: Maybe String
-    } deriving (Eq,Show)
+    } deriving (Show)
 
 data Developer = Developer
     {
         devEmail :: Maybe String,
         devName :: Maybe String
-    } deriving (Show,Eq)
+    } deriving (Show)
 
 instance FromJSON Developer where
     parseJSON = withObject "Developer" parse
@@ -66,7 +66,7 @@ data RefreshToken = RefreshToken
         refreshTokenExpireIn :: Maybe Int,
         refreshTokenInstanceId :: Maybe String,
         refreshTokenScope :: Maybe String
-    } deriving (Eq,Show)
+    } deriving (Show)
 
 instance FromJSON RefreshToken where
     parseJSON = withObject "RefreshToken" parse
@@ -104,7 +104,7 @@ data PermissionsResponse = PermissionsResponse
     permissionsWritable :: Bool,
     permissionsReadable :: Bool,
     permissionsPath :: Maybe String
-  } deriving (Eq, Show)
+  } deriving (Show)
 
 instance FromJSON PermissionsResponse where
   parseJSON = withObject "PermissionsResponse" parse
