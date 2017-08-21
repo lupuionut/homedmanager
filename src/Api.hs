@@ -22,19 +22,24 @@ execute _ [] _ _ = return ()
 execute endpoint c t o = do
     let options = buildInternalOptions o
     request <- H.parseRequest endpoint
+    let request' = build request
     case (head c) of
         "app" -> do
-            let req = infoApp (request' request)
+            let req = infoApp request'
             response <- execute' req
             print response
         "stat" -> do
-            let req = permissions options (request' request)
+            let req = permissions options request'
+            response <- execute' req
+            print response
+        "ls" -> do
+            let req = lsDir options request'
             response <- execute' req
             print response
         _ -> putStrLn "0"
     where
         token = C8.pack ("Bearer " ++ B64.encode t)
-        request' request =
+        build request =
             H.addRequestHeader hAuthorization token $
             H.setRequestSecure True $
             H.setRequestPort 443 $
@@ -84,3 +89,8 @@ permissions options httpReq = request
                     H.setRequestPath (C8.pack("/2.1/permission")) $
                     H.setRequestQueryString options
                     httpReq)
+
+lsDir :: [(C8.ByteString, Maybe C8.ByteString)]
+    -> H.Request
+    -> HidriveRequest PermissionsRequest H.Request
+lsDir = undefined
