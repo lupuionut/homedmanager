@@ -2,8 +2,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Api where
 
-import qualified Network.HTTP.Simple as H
 import Network.HTTP.Types.Header
+import qualified Network.HTTP.Simple as H
 import qualified Data.ByteString.Char8 as C8
 import qualified Codec.Binary.Base64.String as B64
 import Data.Aeson
@@ -33,15 +33,16 @@ execute endpoint c t o = do
             print response
         _ -> putStrLn "0"
     where
-        token = "Bearer " ++ B64.encode t
+        token = C8.pack ("Bearer " ++ B64.encode t)
         request' request =
-            H.addRequestHeader hAuthorization (C8.pack token) $
+            H.addRequestHeader hAuthorization token $
             H.setRequestSecure True $
             H.setRequestPort 443 $
             request
 
 
-execute' :: (FromJSON (HidriveResponse a)) => HidriveRequest a H.Request
+execute' :: (FromJSON (HidriveResponse a))
+    => HidriveRequest a H.Request
     -> IO (Either String (HidriveResponse a))
 execute' req = do
     res <- H.httpLBS (httpReq req)
