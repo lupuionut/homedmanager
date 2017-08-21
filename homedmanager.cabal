@@ -15,8 +15,8 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
-  exposed-modules:     Config,Cmd,Fs,Auth,Api, Api.Request, Api.PostRequest
-  other-modules:       Api.Response
+  exposed-modules:     Config,Cmd,Fs,Auth,Api
+  other-modules:       Api.Types
   build-depends:       base >= 4.7 && < 5, directory, unix, yaml, aeson,
                         http-conduit, bytestring, base64-string, http-types,
                         filepath, utf8-string, text

@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE OverloadedStrings #-}
 module Api where
 
@@ -5,12 +6,10 @@ import qualified Network.HTTP.Simple as H
 import Network.HTTP.Types.Header
 import qualified Data.ByteString.Char8 as C8
 import qualified Codec.Binary.Base64.String as B64
-import Api.Request
-import Data.Char
 import Data.Aeson
 import Data.Maybe
 import System.Environment
-import Api.Response
+import Api.Types
 
 
 type Token = String
@@ -19,32 +18,41 @@ type Options = Maybe [(String,String)]
 
 
 execute :: String-> Command -> Token -> Options -> IO ()
-execute u c t o = case request of
-    Nothing -> return ()
-    Just action -> do
-        let options = buildInternalOptions o
-        let token = "Bearer " ++ B64.encode t
-        response <- doRequest u token action options
-        putStrLn $ response
+execute _ [] _ _ = return ()
+execute endpoint c t o = do
+    let options = buildInternalOptions o
+    request <- H.parseRequest endpoint
+    case (head c) of
+        "app" -> do
+            let req = infoApp (request' request)
+            print req
+        "stat" -> do
+            let req = permissions options (request' request)
+            response <- execute' req
+            print response
+        _ -> putStrLn "0"
     where
-        request = buildInternalRequest c
+        token = "Bearer " ++ B64.encode t
+        request' request =
+            H.addRequestHeader hAuthorization (C8.pack token) $
+            H.setRequestSecure True $
+            H.setRequestPort 443 $
+            request
 
 
-buildInternalRequest :: Command -> Maybe (ApiRequest Command)
-buildInternalRequest [] = Nothing
-buildInternalRequest (x:xs) =
-    case (toLowerS x) of
-        "get" ->
-            Just (GetRequest xs)
-        "post" ->
-            Just (PostRequest xs)
-        "put" ->
-            Just (PutRequest xs)
-        "delete" ->
-            Just (DeleteRequest xs)
-        "patch" ->
-            Just (PatchRequest xs)
-        _ -> Nothing
+execute' :: (FromJSON (HidriveResponse a)) => HidriveRequest a H.Request
+    -> IO (Either String (HidriveResponse a))
+execute' req = do
+    res <- H.httpLBS (httpReq req)
+    let body = H.getResponseBody res
+    case (H.getResponseStatusCode res) of
+        200 -> do
+            return $ eitherDecode body
+        201 -> do
+            return $ eitherDecode body
+        _ -> do
+            return $ Left $ msg $ fromJust
+                (decode body :: Maybe ReceivedError)
 
 
 buildInternalOptions :: Options -> [(C8.ByteString, Maybe C8.ByteString)]
@@ -53,30 +61,24 @@ buildInternalOptions (Just o) =
     map (\x -> (C8.pack $ fst x, pure $ C8.pack $ snd x)) o
 
 
-doRequest :: String
-    -> Token
-    -> ApiRequest Command
-    -> [(C8.ByteString, Maybe C8.ByteString)]
-    -> IO String
-doRequest url token action options =
-    do
-        initial <- H.parseRequest url
-        let composed = Api.Request.build action options initial
-        let req = H.addRequestHeader hAuthorization (C8.pack token)
-                $ H.setRequestSecure True
-                $ H.setRequestPort 443
-                $ composed
-        res <- H.httpLBS req
-        let body = H.getResponseBody res
-        case (H.getResponseStatusCode res) of
-            200 -> do
-                return $ showResponse $
-                    fromJust (decode body :: Maybe Api.Response.Response)
-            201 -> do
-                return $ show $ fromJust (decode body :: Maybe Value)
-            _ -> do
-                return $ msg $ fromJust (decode body :: Maybe ReceivedError)
+infoApp :: H.Request -> HidriveRequest AppRequest H.Request
+infoApp httpReq = request
+    where
+        request = mkHidriveRequest
+                    (C8.pack "GET")
+                    (H.setRequestMethod (C8.pack "GET") $
+                    H.setRequestPath (C8.pack("/app/me")) $
+                    httpReq)
 
 
-toLowerS :: String -> String
-toLowerS = map toLower
+permissions :: [(C8.ByteString, Maybe C8.ByteString)]
+    -> H.Request
+    -> HidriveRequest PermissionsRequest H.Request
+permissions options httpReq = request
+    where
+        request = mkHidriveRequest
+                    (C8.pack "GET")
+                    (H.setRequestMethod (C8.pack "GET") $
+                    H.setRequestPath (C8.pack("/2.1/permission")) $
+                    H.setRequestQueryString options
+                    httpReq)
