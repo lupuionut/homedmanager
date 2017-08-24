@@ -18,10 +18,12 @@ data ReceivedError =
     | ReceivedError' { msg :: String, rcode :: String }
     deriving (Show, Generic)
 
+
 instance FromJSON ReceivedError where
     parseJSON v =
         parseCodeInt v <|>
         parseCodeStr v
+
 
 parseCodeInt :: Value -> Parser ReceivedError
 parseCodeInt = withObject "ReceivedError"
