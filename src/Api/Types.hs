@@ -7,13 +7,31 @@
 module Api.Types where
 import GHC.Generics
 import Data.Aeson
+import Data.Aeson.Types
 import Data.Maybe
 import qualified Data.ByteString.Char8 as C8
 import Network.HTTP.Simple
+import Control.Applicative
 
-data ReceivedError = ReceivedError { msg::String, code:: Int }
-    deriving (Show, Read, Generic)
-instance FromJSON ReceivedError
+data ReceivedError =
+    ReceivedError { msg :: String, code :: Int }
+    | ReceivedError' { msg :: String, rcode :: String }
+    deriving (Show, Generic)
+
+instance FromJSON ReceivedError where
+    parseJSON v =
+        parseCodeInt v <|>
+        parseCodeStr v
+
+parseCodeInt :: Value -> Parser ReceivedError
+parseCodeInt = withObject "ReceivedError"
+                (\o -> ReceivedError    <$> o .: "msg"
+                                        <*> o .: "code")
+
+parseCodeStr :: Value -> Parser ReceivedError
+parseCodeStr = withObject "ReceivedError"
+                (\o -> ReceivedError'    <$> o .: "msg"
+                                        <*> o .: "code")
 
 data HidriveRequest a b = HidriveRequest
     {

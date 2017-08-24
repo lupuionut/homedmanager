@@ -27,7 +27,7 @@ execute endpoint c t o = do
             let req = infoApp request'
             response <- execute' req
             print response
-        "stat" -> do
+        "permissions" -> do
             let req = permissions options request'
             response <- execute' req
             print response
@@ -57,7 +57,7 @@ execute' req = do
         201 -> do
             return $ eitherDecode body
         _ -> do
-            return $ Left $ msg $ fromJust
+            return $ Left $ msg $ fromJust $
                 (decode body :: Maybe ReceivedError)
 
 
