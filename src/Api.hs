@@ -11,7 +11,6 @@ import Data.Maybe
 import System.Environment
 import Api.Types
 
-
 type Token = String
 type Command = [String]
 type Options = Maybe [(String,String)]
@@ -90,7 +89,15 @@ permissions options httpReq = request
                     H.setRequestQueryString options
                     httpReq)
 
+
 lsDir :: [(C8.ByteString, Maybe C8.ByteString)]
     -> H.Request
-    -> HidriveRequest PermissionsRequest H.Request
-lsDir = undefined
+    -> HidriveRequest ListDirRequest H.Request
+lsDir options httpReq = request
+    where
+        request = mkHidriveRequest
+                    (C8.pack "GET")
+                    (H.setRequestMethod (C8.pack "GET") $
+                    H.setRequestPath (C8.pack("/2.1/dir")) $
+                    H.setRequestQueryString options
+                    httpReq)

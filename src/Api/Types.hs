@@ -11,7 +11,7 @@ import Data.Maybe
 import qualified Data.ByteString.Char8 as C8
 import Network.HTTP.Simple
 
-data ReceivedError = ReceivedError { msg::String, code::String }
+data ReceivedError = ReceivedError { msg::String, code:: Int }
     deriving (Show, Read, Generic)
 instance FromJSON ReceivedError
 
@@ -115,3 +115,81 @@ instance FromJSON PermissionsResponse where
                 <*> o .:  "readable"
                 <*> o .:? "path"
 {-- /permission requests --}
+
+{-- /dir requests --}
+data ListDirRequest
+type instance HidriveResponse ListDirRequest = ListDirResponse
+
+data ListDirResponse = ListDirResponse
+    {
+        listdirChash :: Maybe String,
+        listdirCtime :: Maybe Int,
+        listdirHas_dirs :: Maybe Bool,
+        listdirId :: Maybe Int,
+        listdirMembers :: Maybe [ListDirResponse],
+        listdirMhash :: Maybe String,
+        listdirMohash :: Maybe String,
+        listdirMtime :: Maybe Int,
+        listdirName :: Maybe String,
+        listdirNhash :: Maybe String,
+        listdirNmembers :: Maybe Int,
+        listdirParentid :: Maybe String,
+        listdirPath :: Maybe String,
+        listdirReadable :: Maybe Bool,
+        listdirRshare :: Maybe [LsShare],
+        listdirSize :: Maybe Int,
+        listdirType :: Maybe String,
+        listdirWritable :: Maybe Bool
+    } deriving Show
+
+instance FromJSON ListDirResponse where
+  parseJSON = withObject "ListDirResponse" parse
+    where
+      parse o = ListDirResponse
+                <$> o .:? "chash"
+                <*> o .:? "ctime"
+                <*> o .:? "has_dirs"
+                <*> o .:? "id"
+                <*> o .:? "members"
+                <*> o .:? "mhash"
+                <*> o .:? "mohash"
+                <*> o .:? "mtime"
+                <*> o .:? "name"
+                <*> o .:? "nhash"
+                <*> o .:? "nmembers"
+                <*> o .:? "parent_id"
+                <*> o .:? "path"
+                <*> o .:? "readable"
+                <*> o .:? "rshare"
+                <*> o .:? "size"
+                <*> o .:? "type"
+                <*> o .:? "writable"
+
+data LsShare = LsShare
+    {
+        lsShareId :: String,
+        lsShareStatus :: String,
+        lsShareReadable :: Bool,
+        lsShareWritable :: Bool,
+        lsShareCount :: Int,
+        lsSharePassword :: Maybe String,
+        lsShareCreated :: Int,
+        lsShareLastModified :: Int,
+        lsShareShareType :: String,
+        lsShareIsEncrypted :: Bool
+    } deriving Show
+
+instance FromJSON LsShare where
+  parseJSON = withObject "LsShare" parse
+    where
+      parse o = LsShare
+                    <$> o .: "id"
+                    <*> o .: "status"
+                    <*> o .: "readable"
+                    <*> o .: "writable"
+                    <*> o .: "count"
+                    <*> o .:? "password"
+                    <*> o .: "created"
+                    <*> o .: "last_modified"
+                    <*> o .: "share_type"
+                    <*> o .: "is_encrypted"
