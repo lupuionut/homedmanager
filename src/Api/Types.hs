@@ -213,3 +213,71 @@ instance FromJSON LsShare where
                     <*> o .: "last_modified"
                     <*> o .: "share_type"
                     <*> o .: "is_encrypted"
+{-- /dir requests --}
+
+{-- /file POST --}
+data UploadFileRequest
+type instance HidriveResponse UploadFileRequest = UploadFileResponse
+
+data UploadFileResponse = UploadFileResponse
+    {
+        uploadFileCtime :: Int,
+        uploadFileHasDirs :: Maybe Bool,
+        uploadFileId :: String,
+        uploadFileImage :: FileImage,
+        uploadFileMimeType :: String,
+        uploadFileMtime :: Int,
+        uploadFileName :: String,
+        uploadFileParentId :: String,
+        uploadFilePath :: String,
+        uploadFileReadable :: Bool,
+        uploadFileRshare :: Maybe LsShare,
+        uploadFileSize :: Int,
+        uploadFileType :: String,
+        uploadFileWritable :: Bool
+    } deriving Show
+
+data FileImage = FileImage
+    {
+        fileImageExif :: Maybe FileImageExif, 
+        fileImageWidth :: Maybe Int,
+        fileImageHeight :: Maybe Int
+    } deriving Show
+
+data FileImageExif = FileImageExif 
+    {
+        resolutionUnit :: Maybe Int,
+        imageHeight :: Maybe Int,
+        xResolution :: Maybe Int,
+        imageWidth :: Maybe Int,
+        bitsPerSample :: Maybe Int,
+        yResolution :: Maybe Int
+    } deriving (Generic, Show)
+instance FromJSON FileImageExif
+
+instance FromJSON FileImage where
+  parseJSON = withObject "FileImage" parse
+    where
+      parse o = FileImage 
+                <$> o .:?  "exif"
+                <*> o .:?  "height"
+                <*> o .:?  "width"
+
+instance FromJSON UploadFileResponse where
+  parseJSON = withObject "UploadFileResponse" parse
+    where
+      parse o = UploadFileResponse 
+                <$> o .:  "ctime"
+                <*> o .:?  "has_dirs"
+                <*> o .:  "id"
+                <*> o .:  "image"
+                <*> o .:  "mime_type"
+                <*> o .:  "mtime"
+                <*> o .:  "name"
+                <*> o .:  "parent_id"
+                <*> o .:  "path"
+                <*> o .:  "readable"
+                <*> o .:?  "rshare"
+                <*> o .:  "size"
+                <*> o .:  "type"
+                <*> o .:  "writable"

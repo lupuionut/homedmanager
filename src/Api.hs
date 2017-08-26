@@ -35,6 +35,14 @@ execute endpoint c t o = do
             let req = lsDir options request'
             response <- execute' req
             print response
+        "upload" -> do
+            let fpath = extractUploadPath c
+            case fpath of
+                Nothing -> putStrLn "Please provide file path of file to upload"
+                Just f -> do
+                    let req = upload options request' f
+                    response <- execute' req
+                    print response
         _ -> putStrLn "0"
     where
         token = C8.pack ("Bearer " ++ B64.encode t)
@@ -65,6 +73,13 @@ buildInternalOptions :: Options -> [(C8.ByteString, Maybe C8.ByteString)]
 buildInternalOptions Nothing = []
 buildInternalOptions (Just o) =
     map (\x -> (C8.pack $ fst x, pure $ C8.pack $ snd x)) o
+
+
+extractUploadPath :: [String] -> Maybe FilePath
+extractUploadPath [] = Nothing
+extractUploadPath xs = case (length xs) of
+    1 -> Nothing
+    _ -> pure . head . tail $ xs
 
 
 infoApp :: H.Request -> HidriveRequest AppRequest H.Request
@@ -99,5 +114,23 @@ lsDir options httpReq = request
                     (C8.pack "GET")
                     (H.setRequestMethod (C8.pack "GET") $
                     H.setRequestPath (C8.pack("/2.1/dir")) $
+                    H.setRequestQueryString options
+                    httpReq)
+
+
+upload :: [(C8.ByteString, Maybe C8.ByteString)]
+    -> H.Request
+    -> FilePath
+    -> HidriveRequest UploadFileRequest H.Request
+upload options httpReq file = request
+    where
+        request = mkHidriveRequest 
+                    (C8.pack "POST")
+                    (H.setRequestMethod (C8.pack "POST") $
+                    H.setRequestPath (C8.pack("/2.1/file")) $
+                    H.addRequestHeader
+                        hContentType 
+                        (C8.pack ("application/octet-stream")) $
+                    H.setRequestBodyFile file $
                     H.setRequestQueryString options
                     httpReq)
