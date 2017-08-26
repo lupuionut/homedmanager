@@ -239,12 +239,12 @@ data UploadFileResponse = UploadFileResponse
 
 data FileImage = FileImage
     {
-        fileImageExif :: Maybe FileImageExif, 
+        fileImageExif :: Maybe FileImageExif,
         fileImageWidth :: Maybe Int,
         fileImageHeight :: Maybe Int
     } deriving Show
 
-data FileImageExif = FileImageExif 
+data FileImageExif = FileImageExif
     {
         resolutionUnit :: Maybe Int,
         imageHeight :: Maybe Int,
@@ -258,7 +258,7 @@ instance FromJSON FileImageExif
 instance FromJSON FileImage where
   parseJSON = withObject "FileImage" parse
     where
-      parse o = FileImage 
+      parse o = FileImage
                 <$> o .:?  "exif"
                 <*> o .:?  "height"
                 <*> o .:?  "width"
@@ -266,7 +266,7 @@ instance FromJSON FileImage where
 instance FromJSON UploadFileResponse where
   parseJSON = withObject "UploadFileResponse" parse
     where
-      parse o = UploadFileResponse 
+      parse o = UploadFileResponse
                 <$> o .:  "ctime"
                 <*> o .:?  "has_dirs"
                 <*> o .:  "id"

@@ -69,7 +69,7 @@ execute' req = do
         201 -> do
             return $ eitherDecode body
         204 -> do
-            return $ Left "No body response" 
+            return $ Left "No body response"
         _ -> do
             return $ Left $ msg $ fromJust $
                 (decode body :: Maybe ReceivedError)
@@ -130,12 +130,12 @@ upload :: [(C8.ByteString, Maybe C8.ByteString)]
     -> HidriveRequest UploadFileRequest H.Request
 upload options httpReq file = request
     where
-        request = mkHidriveRequest 
+        request = mkHidriveRequest
                     (C8.pack "POST")
                     (H.setRequestMethod (C8.pack "POST") $
                     H.setRequestPath (C8.pack("/2.1/file")) $
                     H.addRequestHeader
-                        hContentType 
+                        hContentType
                         (C8.pack ("application/octet-stream")) $
                     H.setRequestBodyFile file $
                     H.setRequestQueryString options
