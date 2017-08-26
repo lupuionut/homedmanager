@@ -19,5 +19,5 @@ Get CLIENT_ID and CLIENT_SECRET: [GET API KEY](https://dev.strato.com/hidrive/ge
 
 AUTH_CODE is the code obtained when you authorize this app
 ```
-https://www.hidrive.strato.com/oauth2/authorize?client_id=CLIENT_ID&response_type=code
+https://www.hidrive.strato.com/oauth2/authorize?client_id=CLIENT_ID&response_type=code&scope=admin,rw
 ```

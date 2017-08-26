@@ -43,7 +43,8 @@ help =
     "For example -fields=account,alias\n" ++
     "You can use multiple options with some commands\n\n" ++
     "List of commands:\n" ++
-    "\t help (display this help)\n" ++
-    "\t app (display app related information)\n" ++
-    "\t stat -path=/path/to/remote (call to get access information for file/folder)\n" ++
-    "\t upload /path/to/local/file -name=NAME -dir=/path/to/remote/dir (upload a file to remote directory)\n" 
+    " help (display this help)\n" ++
+    " app (display app related information)\n" ++
+    " permissions -path=/path/to/remote (get access permissions for a file or folder for the authenticated or a given user account)\n" ++ 
+    " ls -path=/path/to/remote (query information about a given directory and all its contents)\n" ++
+    " upload /path/to/local/file -name=NAME -dir=/path/to/remote/dir (create a new file and store uploaded content)\n" 
