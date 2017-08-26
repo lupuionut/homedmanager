@@ -47,6 +47,10 @@ execute endpoint c t o = do
             let req = unlink options request'
             response <- execute' req
             print response
+        "sharelink" -> do
+            let req = sharelink options request'
+            response <- execute' req
+            print response
         _ -> putStrLn "0"
     where
         token = C8.pack ("Bearer " ++ B64.encode t)
@@ -152,4 +156,18 @@ unlink options httpReq = request
                 (H.setRequestMethod (C8.pack "DELETE") $
                 H.setRequestPath (C8.pack("/2.1/file")) $
                 H.setRequestQueryString options
+                httpReq)
+
+
+sharelink :: [(C8.ByteString, Maybe C8.ByteString)]
+    -> H.Request
+    -> HidriveRequest ShareLinkRequest H.Request
+sharelink options httpReq = request
+    where
+        options' = options ++ [(C8.pack("type"), Just (C8.pack $ "file"))]
+        request = mkHidriveRequest
+                (C8.pack "POST")
+                (H.setRequestMethod (C8.pack "POST") $
+                H.setRequestPath (C8.pack("/2.1/sharelink")) $
+                H.setRequestQueryString options'
                 httpReq)

@@ -231,7 +231,7 @@ data UploadFileResponse = UploadFileResponse
         uploadFileParentId :: String,
         uploadFilePath :: String,
         uploadFileReadable :: Bool,
-        uploadFileRshare :: Maybe LsShare,
+        -- uploadFileRshare :: Maybe LsShare,
         uploadFileSize :: Int,
         uploadFileType :: String,
         uploadFileWritable :: Bool
@@ -277,7 +277,7 @@ instance FromJSON UploadFileResponse where
                 <*> o .:  "parent_id"
                 <*> o .:  "path"
                 <*> o .:  "readable"
-                <*> o .:?  "rshare"
+                -- <*> o .:?  "rshare"
                 <*> o .:  "size"
                 <*> o .:  "type"
                 <*> o .:  "writable"
@@ -286,3 +286,42 @@ instance FromJSON UploadFileResponse where
 type instance HidriveResponse Void = Void
 data Void = Void deriving (Generic,Show)
 instance FromJSON Void
+
+
+data ShareLinkRequest
+type instance HidriveResponse ShareLinkRequest = ShareLinkResponse
+
+data ShareLinkResponse = ShareLinkResponse
+    {
+        shareLinkCount :: Int,
+        shareLinkCreated :: Int,
+        shareLinkId :: String,
+        shareLinkLastModified :: Int,
+        shareLinkMaxCount :: Int,
+        shareLinkPid :: String,
+        shareLinkPath :: String,
+        shareLinkPassword :: Maybe String,
+        shareLinkSize :: Int,
+        shareLinkStatus :: String,
+        shareLinkTtl :: Int,
+        shareLinkType :: String,
+        shareLinkUri :: String
+    } deriving Show
+
+instance FromJSON ShareLinkResponse where
+    parseJSON = withObject "ShareLinkResponse" parse
+        where
+            parse o = ShareLinkResponse
+                        <$> o .: "count"
+                        <*> o .: "created"
+                        <*> o .: "id"
+                        <*> o .: "last_modified"
+                        <*> o .: "maxcount"
+                        <*> o .: "pid"
+                        <*> o .: "path"
+                        <*> o .:? "password"
+                        <*> o .: "size"
+                        <*> o .: "status"
+                        <*> o .: "ttl"
+                        <*> o .: "type"
+                        <*> o .: "uri"
