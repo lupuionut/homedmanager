@@ -281,3 +281,8 @@ instance FromJSON UploadFileResponse where
                 <*> o .:  "size"
                 <*> o .:  "type"
                 <*> o .:  "writable"
+{-- /file POST --}
+
+type instance HidriveResponse Void = Void
+data Void = Void deriving (Generic,Show)
+instance FromJSON Void

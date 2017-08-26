@@ -43,6 +43,10 @@ execute endpoint c t o = do
                     let req = upload options request' f
                     response <- execute' req
                     print response
+        "unlink" -> do
+            let req = unlink options request'
+            response <- execute' req
+            print response
         _ -> putStrLn "0"
     where
         token = C8.pack ("Bearer " ++ B64.encode t)
@@ -64,6 +68,8 @@ execute' req = do
             return $ eitherDecode body
         201 -> do
             return $ eitherDecode body
+        204 -> do
+            return $ Left "No body response" 
         _ -> do
             return $ Left $ msg $ fromJust $
                 (decode body :: Maybe ReceivedError)
@@ -134,3 +140,16 @@ upload options httpReq file = request
                     H.setRequestBodyFile file $
                     H.setRequestQueryString options
                     httpReq)
+
+
+unlink :: [(C8.ByteString, Maybe C8.ByteString)]
+    -> H.Request
+    -> HidriveRequest Void H.Request
+unlink options httpReq = request
+    where
+        request = mkHidriveRequest
+                (C8.pack "DELETE")
+                (H.setRequestMethod (C8.pack "DELETE") $
+                H.setRequestPath (C8.pack("/2.1/file")) $
+                H.setRequestQueryString options
+                httpReq)

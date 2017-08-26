@@ -47,4 +47,5 @@ help =
     " app (display app related information)\n" ++
     " permissions -path=/path/to/remote (get access permissions for a file or folder for the authenticated or a given user account)\n" ++ 
     " ls -path=/path/to/remote (query information about a given directory and all its contents)\n" ++
-    " upload /path/to/local/file -name=NAME -dir=/path/to/remote/dir (create a new file and store uploaded content)\n" 
+    " upload /path/to/local/file -name=NAME -dir=/path/to/remote/dir (create a new file and store uploaded content)\n" ++
+    " unlink -path=/path/to/remote (delete a given file)\n"
