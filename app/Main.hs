@@ -52,4 +52,5 @@ help =
     "* upload /path/to/local/file -name=NAME -dir=/path/to/remote/dir" ++
     " (create a new file and store uploaded content)\n" ++
     "* unlink -path=/path/to/remote (delete a given file)\n" ++
-    "* sharelink -path=/path/to/remote (create a new sharelink for a given file)\n"
+    "* share -path=/path/to/remote (create a new sharelink for a given file)\n" ++
+    "* sharelink (return a list of all sharelink objects of the user)\n"

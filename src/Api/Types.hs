@@ -215,7 +215,7 @@ instance FromJSON LsShare where
                     <*> o .: "is_encrypted"
 {-- /dir requests --}
 
-{-- /file POST --}
+{-- 2.1/file post --}
 data UploadFileRequest
 type instance HidriveResponse UploadFileRequest = UploadFileResponse
 
@@ -281,37 +281,37 @@ instance FromJSON UploadFileResponse where
                 <*> o .:  "size"
                 <*> o .:  "type"
                 <*> o .:  "writable"
-{-- /file POST --}
+{-- /2.1/file post --}
 
 type instance HidriveResponse Void = Void
 data Void = Void deriving (Generic,Show)
 instance FromJSON Void
 
+{-- 2.1/sharelink post --}
+data ShareRequest
+type instance HidriveResponse ShareRequest = ShareResponse
 
-data ShareLinkRequest
-type instance HidriveResponse ShareLinkRequest = ShareLinkResponse
-
-data ShareLinkResponse = ShareLinkResponse
+data ShareResponse = ShareResponse
     {
-        shareLinkCount :: Int,
-        shareLinkCreated :: Int,
-        shareLinkId :: String,
-        shareLinkLastModified :: Int,
-        shareLinkMaxCount :: Int,
-        shareLinkPid :: String,
-        shareLinkPath :: String,
-        shareLinkPassword :: Maybe String,
-        shareLinkSize :: Int,
-        shareLinkStatus :: String,
-        shareLinkTtl :: Int,
-        shareLinkType :: String,
-        shareLinkUri :: String
+        shareCount :: Int,
+        shareCreated :: Int,
+        shareId :: String,
+        shareLastModified :: Int,
+        shareMaxCount :: Int,
+        sharePid :: String,
+        sharePath :: String,
+        sharePassword :: Maybe String,
+        shareSize :: Int,
+        shareStatus :: String,
+        shareTtl :: Int,
+        shareType :: String,
+        shareUri :: String
     } deriving Show
 
-instance FromJSON ShareLinkResponse where
-    parseJSON = withObject "ShareLinkResponse" parse
+instance FromJSON ShareResponse where
+    parseJSON = withObject "ShareResponse" parse
         where
-            parse o = ShareLinkResponse
+            parse o = ShareResponse
                         <$> o .: "count"
                         <*> o .: "created"
                         <*> o .: "id"
@@ -325,3 +325,57 @@ instance FromJSON ShareLinkResponse where
                         <*> o .: "ttl"
                         <*> o .: "type"
                         <*> o .: "uri"
+{-- /2.1/sharelink post --}
+
+{-- 2.1/sharelink get --}
+data ShareLinkRequest
+type instance HidriveResponse ShareLinkRequest = [ShareLinkObject]
+
+data ShareLinkObject = ShareLinkObject
+    {
+        shareLinkObjectCount :: Maybe Int,
+        shareLinkObjectCreated :: Maybe Int,
+        shareLinkObjectHasPassword :: Maybe Bool,
+        shareLinkObjectId :: Maybe String,
+        shareLinkObjectLastModified :: Maybe Int,
+        shareLinkObjectMaxcount :: Maybe Int,
+        shareLinkObjectName :: Maybe String,
+        shareLinkObjectPath :: Maybe String,
+        shareLinkObjectPassword :: Maybe String,
+        shareLinkObjectPid :: Maybe String,
+        shareLinkObjectReadable :: Maybe Bool,
+        shareLinkObjectRemaining :: Maybe Int,
+        shareLinkObjectShareType :: Maybe String,
+        shareLinkObjectSize :: Maybe Int,
+        shareLinkObjectStatus :: Maybe String,
+        shareLinkObjectType :: Maybe String,
+        shareLinkObjectTtl :: Maybe Int,
+        shareLinkObjectUri :: Maybe String,
+        shareLinkObjectWritable :: Maybe Bool
+    } deriving Show
+
+instance FromJSON ShareLinkObject where
+    parseJSON = withObject "ShareLinkObject" parse
+        where
+            parse o = ShareLinkObject
+                        <$> o .:? "count"
+                        <*> o .:? "created"
+                        <*> o .:? "has_password"
+                        <*> o .:? "id"
+                        <*> o .:? "last_modified"
+                        <*> o .:? "maxcount"
+                        <*> o .:? "name"
+                        <*> o .:? "path"
+                        <*> o .:? "password"
+                        <*> o .:? "pid"
+                        <*> o .:? "readable"
+                        <*> o .:? "remaining"
+                        <*> o .:? "share_type"
+                        <*> o .:? "size"
+                        <*> o .:? "status"
+                        <*> o .:? "type"
+                        <*> o .:? "ttl"
+                        <*> o .:? "uri"
+                        <*> o .:? "writable"
+{-- /2.1/sharelink get --}
+
