@@ -10,13 +10,13 @@ import Data.Aeson
 import Data.Maybe
 import System.Environment
 import Api.Types
+import Print
 
 type Token = String
-type Command = [String]
 type Options = Maybe [(String,String)]
 
 
-execute :: String-> Command -> Token -> Options -> IO ()
+execute :: String-> [String] -> Token -> Options -> IO ()
 execute _ [] _ _ = return ()
 execute endpoint c t o = do
     let options = buildInternalOptions o
@@ -54,7 +54,8 @@ execute endpoint c t o = do
         "sharelink" -> do
             let req = sharelink options request'
             response <- execute' req
-            print response
+            printSharelink response 
+            -- print response
         _ -> putStrLn "0"
     where
         token = C8.pack ("Bearer " ++ B64.encode t)
