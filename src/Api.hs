@@ -6,6 +6,8 @@ import Network.HTTP.Types.Header
 import qualified Network.HTTP.Simple as H
 import qualified Data.ByteString.Char8 as C8
 import qualified Codec.Binary.Base64.String as B64
+import qualified Data.ByteString.UTF8 as BUTF
+import System.FilePath.Posix
 import Data.Aeson
 import Data.Maybe
 import System.Environment
@@ -147,8 +149,13 @@ upload options httpReq file = request
                         hContentType
                         (C8.pack ("application/octet-stream")) $
                     H.setRequestBodyFile file $
-                    H.setRequestQueryString options
+                    H.setRequestQueryString 
+                        (options ++ [("name",fileName file)]) $
                     httpReq)
+
+fileName :: String -> Maybe C8.ByteString
+fileName "" = Nothing
+fileName s = pure $ BUTF.fromString $ takeFileName s
 
 
 unlink :: [(C8.ByteString, Maybe C8.ByteString)]
