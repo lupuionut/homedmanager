@@ -44,7 +44,7 @@ execute endpoint c t o = do
                 Just f -> do
                     let req = upload options request' f
                     response <- execute' req
-                    print response
+                    printUploadResponse response
         "unlink" -> do
             let req = unlink options request'
             response <- execute' req
@@ -57,7 +57,6 @@ execute endpoint c t o = do
             let req = sharelink options request'
             response <- execute' req
             printSharelink response 
-            -- print response
         _ -> putStrLn "0"
     where
         token = C8.pack ("Bearer " ++ B64.encode t)

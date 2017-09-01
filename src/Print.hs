@@ -1,7 +1,11 @@
-module Print (printSharelink) where
+module Print (  printSharelink,
+                printUploadResponse ) where
 
 import Api.Types
 import Data.Maybe
+import Network.HTTP.Types
+import qualified Data.ByteString.Char8 as C8
+import qualified Data.ByteString.UTF8 as BUTF
 
 printSharelink :: Either String (HidriveResponse ShareLinkRequest)
     -> IO ()
@@ -57,3 +61,28 @@ formatSharelink o =
     (if isJust(shareLinkObjectWritable o) 
         then show . fromJust $ shareLinkObjectWritable o 
         else "Unknown") ++ "\n\n"
+
+
+printUploadResponse :: Either String (HidriveResponse UploadFileRequest)
+    -> IO ()
+printUploadResponse response = case response of
+    Right r -> do
+        putStrLn . formatUploadResponse $ r
+    Left e -> print e
+
+
+formatUploadResponse :: UploadFileResponse -> String
+formatUploadResponse o =
+    "Name: " ++ (
+        BUTF.toString $
+        urlDecode True $
+        BUTF.fromString $
+        uploadFileName o) ++ "\n" ++
+    "Creation time: " ++ (show $ uploadFileCtime o) ++ "\n" ++
+    "Path: " ++ (
+        BUTF.toString $
+        urlDecode True $
+        BUTF.fromString $
+        uploadFilePath o) ++ "\n" ++
+    "Size: " ++ (show $ uploadFileSize o) ++ "\n" ++
+    "Writable: " ++ (show $ uploadFileWritable o)
