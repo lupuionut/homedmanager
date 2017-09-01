@@ -25,6 +25,10 @@ formatSharelink o =
     (if isJust(shareLinkObjectStatus o) 
         then show . fromJust $ shareLinkObjectStatus o 
         else "Unknown") ++ "\n" ++
+    "Number of downloads: " ++ 
+    (if isJust(shareLinkObjectCount o) 
+        then show . fromJust $ shareLinkObjectCount o 
+        else "Unknown") ++ "\n" ++
     "Created: " ++
     (if isJust(shareLinkObjectCreated o) 
         then show . fromJust $ shareLinkObjectCreated o 
@@ -36,10 +40,6 @@ formatSharelink o =
     "Last modif: " ++
     (if isJust(shareLinkObjectLastModified o) 
         then show . fromJust $ shareLinkObjectLastModified o 
-        else "Unknown") ++ "\n" ++
-    "Count: " ++ 
-    (if isJust(shareLinkObjectCount o) 
-        then show . fromJust $ shareLinkObjectCount o 
         else "Unknown") ++ "\n" ++
     "Max count: " ++
     (if isJust(shareLinkObjectMaxcount o) 
