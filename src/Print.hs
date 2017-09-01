@@ -1,5 +1,6 @@
 module Print (  printSharelink,
-                printUploadResponse ) where
+                printUploadResponse,
+                printShareResponse ) where
 
 import Api.Types
 import Data.Maybe
@@ -86,3 +87,22 @@ formatUploadResponse o =
         uploadFilePath o) ++ "\n" ++
     "Size: " ++ (show $ uploadFileSize o) ++ "\n" ++
     "Writable: " ++ (show $ uploadFileWritable o)
+
+
+printShareResponse :: Either String (HidriveResponse ShareRequest)
+    -> IO ()
+printShareResponse response = case response of
+    Right r -> do
+        putStrLn . formatShareResponse $ r
+    Left e -> print e
+
+
+formatShareResponse :: ShareResponse -> String
+formatShareResponse o =
+    "URI: " ++ shareUri o ++ "\n" ++
+    "Downloads allowed: " ++ (show $ shareMaxCount o) ++ "\n" ++
+    "Path: " ++ (
+        BUTF.toString $
+        urlDecode True $
+        BUTF.fromString $
+        sharePath o)

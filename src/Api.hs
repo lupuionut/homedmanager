@@ -52,7 +52,7 @@ execute endpoint c t o = do
         "share" -> do
             let req = share options request'
             response <- execute' req
-            print response
+            printShareResponse response
         "sharelink" -> do
             let req = sharelink options request'
             response <- execute' req
