@@ -32,7 +32,7 @@ execute endpoint c t o = do
         "permissions" -> do
             let req = permissions options request'
             response <- execute' req
-            print response
+            printPermissionsResponse response
         "ls" -> do
             let req = lsDir options request'
             response <- execute' req

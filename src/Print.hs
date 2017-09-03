@@ -1,6 +1,7 @@
 module Print (  printSharelink,
                 printUploadResponse,
-                printShareResponse ) where
+                printShareResponse,
+                printPermissionsResponse ) where
 
 import Api.Types
 import Data.Maybe
@@ -106,3 +107,26 @@ formatShareResponse o =
         urlDecode True $
         BUTF.fromString $
         sharePath o)
+
+
+printPermissionsResponse ::
+    Either String (HidriveResponse PermissionsRequest)
+    -> IO ()
+printPermissionsResponse response = case response of
+    Right r -> do
+        putStrLn . formatPermissionsResponse $ r
+    Left e -> print e
+
+
+formatPermissionsResponse :: PermissionsResponse -> String
+formatPermissionsResponse o = 
+    "Id: " ++ 
+    (if isJust (permissionsAccount o)
+        then fromJust $ permissionsAccount o
+        else "Unknown") ++ "\n"
+    ++ "Writable: " ++ (show $ permissionsWritable o) ++ "\n"
+    ++ "Readable: " ++ (show $ permissionsReadable o) ++ "\n"
+    ++ "Path: " ++
+    (if isJust (permissionsPath o)
+        then show . fromJust $ permissionsPath o
+        else "Unknown")
