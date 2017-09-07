@@ -16,54 +16,54 @@ printSharelink :: Either String (HidriveResponse ShareLinkRequest)
 printSharelink response = case response of
     Right response -> do
         mapM_ putStrLn $ map formatSharelink response
-    Left error -> print error 
+    Left error -> print error
 
 
 formatSharelink :: ShareLinkObject -> String
 formatSharelink o =
     "Id: " ++
-    (if isJust(shareLinkObjectId o) 
-        then show . fromJust $ shareLinkObjectId o 
+    (if isJust(shareLinkObjectId o)
+        then show . fromJust $ shareLinkObjectId o
         else "Unknown") ++ "\n" ++
     "Path: " ++
-    (if isJust(shareLinkObjectPath o) 
-        then show . fromJust $ shareLinkObjectPath o 
+    (if isJust(shareLinkObjectPath o)
+        then show . fromJust $ shareLinkObjectPath o
         else "Unknown") ++ "\n" ++
     "Status: " ++
-    (if isJust(shareLinkObjectStatus o) 
-        then show . fromJust $ shareLinkObjectStatus o 
+    (if isJust(shareLinkObjectStatus o)
+        then show . fromJust $ shareLinkObjectStatus o
         else "Unknown") ++ "\n" ++
-    "Number of downloads: " ++ 
-    (if isJust(shareLinkObjectCount o) 
-        then show . fromJust $ shareLinkObjectCount o 
+    "Number of downloads: " ++
+    (if isJust(shareLinkObjectCount o)
+        then show . fromJust $ shareLinkObjectCount o
         else "Unknown") ++ "\n" ++
     "Created: " ++
-    (if isJust(shareLinkObjectCreated o) 
-        then show . fromJust $ shareLinkObjectCreated o 
+    (if isJust(shareLinkObjectCreated o)
+        then show . fromJust $ shareLinkObjectCreated o
         else "Unknown") ++ "\n" ++
     "Has passw: " ++
-    (if isJust(shareLinkObjectHasPassword o) 
-        then show . fromJust $ shareLinkObjectHasPassword o 
+    (if isJust(shareLinkObjectHasPassword o)
+        then show . fromJust $ shareLinkObjectHasPassword o
         else "Unknown") ++ "\n" ++
     "Last modif: " ++
-    (if isJust(shareLinkObjectLastModified o) 
-        then show . fromJust $ shareLinkObjectLastModified o 
+    (if isJust(shareLinkObjectLastModified o)
+        then show . fromJust $ shareLinkObjectLastModified o
         else "Unknown") ++ "\n" ++
     "Max count: " ++
-    (if isJust(shareLinkObjectMaxcount o) 
-        then show . fromJust $ shareLinkObjectMaxcount o 
+    (if isJust(shareLinkObjectMaxcount o)
+        then show . fromJust $ shareLinkObjectMaxcount o
         else "Unknown") ++ "\n" ++
     "Name: " ++
-    (if isJust(shareLinkObjectName o) 
-        then show . fromJust $ shareLinkObjectName o 
+    (if isJust(shareLinkObjectName o)
+        then show . fromJust $ shareLinkObjectName o
         else "Unknown") ++ "\n" ++
     "Uri: " ++
-    (if isJust(shareLinkObjectUri o) 
-        then show . fromJust $ shareLinkObjectUri o 
+    (if isJust(shareLinkObjectUri o)
+        then show . fromJust $ shareLinkObjectUri o
         else "Unknown") ++ "\n" ++
     "Writable: " ++
-    (if isJust(shareLinkObjectWritable o) 
-        then show . fromJust $ shareLinkObjectWritable o 
+    (if isJust(shareLinkObjectWritable o)
+        then show . fromJust $ shareLinkObjectWritable o
         else "Unknown") ++ "\n\n"
 
 
@@ -109,8 +109,8 @@ printPermissionsResponse response = case response of
 
 
 formatPermissionsResponse :: PermissionsResponse -> String
-formatPermissionsResponse o = 
-    "Id: " ++ 
+formatPermissionsResponse o =
+    "Id: " ++
     (if isJust (permissionsAccount o)
         then fromJust $ permissionsAccount o
         else "Unknown") ++ "\n"
@@ -131,7 +131,7 @@ printListDirResponse response = case response of
 
 
 formatListDirResponse :: Int -> ListDirResponse -> String
-formatListDirResponse n o = 
+formatListDirResponse n o =
     "\n - " ++
     rep ++ "Name: " ++
     (if isJust(listdirName o)
