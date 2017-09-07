@@ -2,7 +2,8 @@ module Print (  printSharelink,
                 printUploadResponse,
                 printShareResponse,
                 printPermissionsResponse,
-                printListDirResponse ) where
+                printListDirResponse,
+                printSharelinkrmResponse ) where
 
 import Api.Types
 import Data.Maybe
@@ -128,6 +129,7 @@ printListDirResponse response = case response of
         putStrLn . formatListDirResponse 0 $ r
     Left e -> print e
 
+
 formatListDirResponse :: Int -> ListDirResponse -> String
 formatListDirResponse n o = 
     "\n - " ++
@@ -149,6 +151,16 @@ formatListDirResponse n o =
         else "Unknown") ++ "\n"
     where
         rep = unwords $ replicate n "\t"
+
+
+printSharelinkrmResponse ::
+    Either String (HidriveResponse Void)
+    -> IO ()
+printSharelinkrmResponse response = case response of
+    Right r -> do
+        return ()
+    Left e -> print e
+
 
 encodeUtfUrlStr :: String -> String
 encodeUtfUrlStr s =

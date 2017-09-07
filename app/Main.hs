@@ -53,4 +53,5 @@ help =
     " (create a new file and store uploaded content)\n" ++
     "* unlink -path=/path/to/remote (delete a given file)\n" ++
     "* share -path=/path/to/remote (create a new sharelink for a given file)\n" ++
-    "* sharelink (return a list of all sharelink objects of the user)\n"
+    "* sharelink (return a list of all sharelink objects of the user)\n"++
+    "* sharelinkrm -id=sharelinkID (remove sharelink)\n"
