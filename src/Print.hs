@@ -1,7 +1,8 @@
 module Print (  printSharelink,
                 printUploadResponse,
                 printShareResponse,
-                printPermissionsResponse ) where
+                printPermissionsResponse,
+                printListDirResponse ) where
 
 import Api.Types
 import Data.Maybe
@@ -75,17 +76,9 @@ printUploadResponse response = case response of
 
 formatUploadResponse :: UploadFileResponse -> String
 formatUploadResponse o =
-    "Name: " ++ (
-        BUTF.toString $
-        urlDecode True $
-        BUTF.fromString $
-        uploadFileName o) ++ "\n" ++
+    "Name: " ++ (encodeUtfUrlStr $ uploadFileName o) ++ "\n" ++
     "Creation time: " ++ (show $ uploadFileCtime o) ++ "\n" ++
-    "Path: " ++ (
-        BUTF.toString $
-        urlDecode True $
-        BUTF.fromString $
-        uploadFilePath o) ++ "\n" ++
+    "Path: " ++ (encodeUtfUrlStr $ uploadFilePath o) ++ "\n" ++
     "Size: " ++ (show $ uploadFileSize o) ++ "\n" ++
     "Writable: " ++ (show $ uploadFileWritable o)
 
@@ -102,11 +95,7 @@ formatShareResponse :: ShareResponse -> String
 formatShareResponse o =
     "URI: " ++ shareUri o ++ "\n" ++
     "Downloads allowed: " ++ (show $ shareMaxCount o) ++ "\n" ++
-    "Path: " ++ (
-        BUTF.toString $
-        urlDecode True $
-        BUTF.fromString $
-        sharePath o)
+    "Path: " ++ (encodeUtfUrlStr $ sharePath o)
 
 
 printPermissionsResponse ::
@@ -130,3 +119,40 @@ formatPermissionsResponse o =
     (if isJust (permissionsPath o)
         then show . fromJust $ permissionsPath o
         else "Unknown")
+
+printListDirResponse ::
+    Either String (HidriveResponse ListDirRequest)
+    -> IO ()
+printListDirResponse response = case response of
+    Right r -> do
+        putStrLn . formatListDirResponse 0 $ r
+    Left e -> print e
+
+formatListDirResponse :: Int -> ListDirResponse -> String
+formatListDirResponse n o = 
+    "\n - " ++
+    rep ++ "Name: " ++
+    (if isJust(listdirName o)
+        then encodeUtfUrlStr $ fromJust $ listdirName o
+        else "Unknown") ++ "\n"
+    ++ rep ++ "Path: " ++
+    (if isJust(listdirPath o)
+        then encodeUtfUrlStr $ fromJust $ listdirPath o
+        else "Unknown") ++ "\n"
+    ++ rep ++ "Type: " ++
+    (if isJust(listdirType o)
+        then fromJust $ listdirType o
+        else "Unknown") ++ "\n"
+    ++ rep ++ "Members: " ++
+    (if isJust(listdirMembers o)
+        then unwords $ fmap (formatListDirResponse (n+1)) $ fromJust $ listdirMembers o
+        else "Unknown") ++ "\n"
+    where
+        rep = unwords $ replicate n "\t"
+
+encodeUtfUrlStr :: String -> String
+encodeUtfUrlStr s =
+    BUTF.toString $
+    urlDecode True $
+    BUTF.fromString $
+    s

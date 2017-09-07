@@ -36,7 +36,7 @@ execute endpoint c t o = do
         "ls" -> do
             let req = lsDir options request'
             response <- execute' req
-            print response
+            printListDirResponse response
         "upload" -> do
             let fpath = extractUploadPath c
             case fpath of
