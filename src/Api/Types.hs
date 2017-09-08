@@ -379,3 +379,42 @@ instance FromJSON ShareLinkObject where
                         <*> o .:? "writable"
 {-- /2.1/sharelink get --}
 
+{-- 2.1/rename post --}
+data RenameFileRequest
+type instance HidriveResponse RenameFileRequest = RenameFileResponse
+
+data RenameFileResponse = RenameFileResponse
+    {
+        renameFileCtime :: Int,
+        renameFileHasDirs :: Maybe Bool,
+        renameFileId :: String,
+        renameFileImage :: Maybe FileImage,
+        renameFileMimetype :: String,
+        renameFileMtime :: Int,
+        renameFileName :: String,
+        renameFileParentId :: String,
+        renameFilePath :: String,
+        renameFileReadable :: Bool,
+        renameFileSize :: Int,
+        renameFileType :: String,
+        renameFileWritable :: Bool
+    } deriving Show
+
+instance FromJSON RenameFileResponse where 
+    parseJSON = withObject "RenameFileResponse" parse
+        where
+            parse o = RenameFileResponse
+                        <$> o .: "ctime"
+                        <*> o .:? "has_dirs"
+                        <*> o .: "id"
+                        <*> o .:? "image"
+                        <*> o .: "mime_type"
+                        <*> o .: "mtime"
+                        <*> o .: "name"
+                        <*> o .: "parent_id"
+                        <*> o .: "path"
+                        <*> o .: "readable"
+                        <*> o .: "size"
+                        <*> o .: "type"
+                        <*> o .: "writable"
+{-- /2.1/rename post --}

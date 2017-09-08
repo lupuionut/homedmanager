@@ -3,7 +3,8 @@ module Print (  printSharelink,
                 printShareResponse,
                 printPermissionsResponse,
                 printListDirResponse,
-                printSharelinkrmResponse ) where
+                printSharelinkrmResponse,
+                printRenameFileResponse ) where
 
 import Api.Types
 import Data.Maybe
@@ -162,9 +163,20 @@ printSharelinkrmResponse response = case response of
     Left e -> print e
 
 
+printRenameFileResponse ::
+    Either String (HidriveResponse RenameFileRequest)
+    -> IO ()
+printRenameFileResponse response = case response of
+    Right r -> do
+        putStrLn . formatRenameFileResponse $ r
+    Left e -> print e
+
+formatRenameFileResponse :: RenameFileResponse -> String
+formatRenameFileResponse o =
+    "Name: " ++ renameFileName o ++ "\n"
+    ++ "Path: " ++ renameFilePath o ++ "\n"
+    ++ "Size: " ++ (show $ renameFileSize o) ++ "\n"
+    ++ "Mime: " ++ renameFileMimetype o ++ "\n"
+
 encodeUtfUrlStr :: String -> String
-encodeUtfUrlStr s =
-    BUTF.toString $
-    urlDecode True $
-    BUTF.fromString $
-    s
+encodeUtfUrlStr s = BUTF.toString $ urlDecode True $ BUTF.fromString $ s

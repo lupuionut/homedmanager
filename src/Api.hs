@@ -45,6 +45,10 @@ execute endpoint c t o = do
                     let req = upload options request' f
                     response <- execute' req
                     printUploadResponse response
+        "rename" -> do
+            let req = rename options request'
+            response <- execute' req
+            printRenameFileResponse response
         "unlink" -> do
             let req = unlink options request'
             response <- execute' req
@@ -56,7 +60,7 @@ execute endpoint c t o = do
         "sharelink" -> do
             let req = sharelink options request'
             response <- execute' req
-            printSharelink response 
+            printSharelink response
         "sharelinkrm" -> do
             let req = sharelinkrm options request'
             response <- execute' req
@@ -152,7 +156,7 @@ upload options httpReq file = request
                         hContentType
                         (C8.pack ("application/octet-stream")) $
                     H.setRequestBodyFile file $
-                    H.setRequestQueryString 
+                    H.setRequestQueryString
                         (options ++ [("name",fileName file)]) $
                     httpReq)
 
@@ -211,3 +215,15 @@ sharelinkrm options httpReq = request
                 H.setRequestPath (C8.pack("/2.1/sharelink")) $
                 H.setRequestQueryString options
                 httpReq)
+
+rename :: [(C8.ByteString, Maybe C8.ByteString)]
+    -> H.Request
+    -> HidriveRequest RenameFileRequest H.Request
+rename options httpReq = request
+    where
+        request = mkHidriveRequest
+                    (C8.pack "POST")
+                    (H.setRequestMethod (C8.pack "POST") $
+                    H.setRequestPath (C8.pack("/2.1/file/rename")) $
+                    H.setRequestQueryString options $
+                    httpReq)
